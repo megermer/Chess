@@ -14,8 +14,8 @@ class ChessGame:
             current_key = key_of_piece # North
             while current_key[1] in "1234567": # 8 excluded to avoid having to add 1 outside the list
                 current_key = current_key[0] + str(int(current_key[1]) + 1)
-                if isinstance(self.board[current_key], Piece):
-                    if self.board[current_key].side != self.board[key_of_piece].side:
+                if isinstance(self.board.pieces[current_key], Piece):
+                    if self.board.pieces[current_key].side != self.board.pieces[key_of_piece].side:
                         move_list.append(current_key)
                     break
                 else:
@@ -24,8 +24,8 @@ class ChessGame:
             current_key = key_of_piece # East
             while current_key[0] in "abcdefg":
                 current_key = chr(ord(current_key[0]) + 1) + current_key[1]
-                if isinstance(self.board[current_key], Piece):
-                    if self.board[current_key].side != self.board[key_of_piece].side:
+                if isinstance(self.board.pieces[current_key], Piece):
+                    if self.board.pieces[current_key].side != self.board.pieces[key_of_piece].side:
                         move_list.append(current_key)
                     break
                 else:
@@ -34,8 +34,8 @@ class ChessGame:
             current_key = key_of_piece # South
             while current_key[1] in "2345678": # 2 excluded to avoid having to add 1 outside the list
                 current_key = current_key[0] + str(int(current_key[1]) - 1)
-                if isinstance(self.board[current_key], Piece):
-                    if self.board[current_key].side != self.board[key_of_piece].side:
+                if isinstance(self.board.pieces[current_key], Piece):
+                    if self.board.pieces[current_key].side != self.board.pieces[key_of_piece].side:
                         move_list.append(current_key)
                     break
                 else:
@@ -44,14 +44,16 @@ class ChessGame:
             current_key = key_of_piece # West
             while current_key[0] in "bcdefgh":
                 current_key = chr(ord(current_key[0]) - 1) + current_key[1]
-                if isinstance(self.board[current_key], Piece):
-                    if self.board[current_key].side != self.board[key_of_piece].side:
+                if isinstance(self.board.pieces[current_key], Piece):
+                    if self.board.pieces[current_key].side != self.board.pieces[key_of_piece].side:
                         move_list.append(current_key)
                     break
                 else:
                     move_list.append(current_key)
             
             return move_list
+        
+        return cardinal(key_of_piece)
 
 class Board:
     def __init__(self):
