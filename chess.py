@@ -32,7 +32,7 @@ class ChessGame:
                     move_list.append(current_key)
             
             current_key = key_of_piece # South
-            while current_key[1] in "2345678": # 2 excluded to avoid having to add 1 outside the list
+            while current_key[1] in "2345678":
                 current_key = current_key[0] + str(int(current_key[1]) - 1)
                 if isinstance(self.board.pieces[current_key], Piece):
                     if self.board.pieces[current_key].side != self.board.pieces[key_of_piece].side:
