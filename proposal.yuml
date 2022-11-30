@@ -1,0 +1,14 @@
+// {type:class}
+// {direction:topDown}
+
+[ChessGame]<>-[Board|move(piece, position)]
+[Board]<>-[Piece (64)|legal_moves(self)]
+[Piece (64)]^[King]
+[Piece (64)]^[Queen]
+[Piece (64)]^[Bishop]
+[Piece (64)]^[Rook]
+[Piece (64)]^[Knight]
+[Piece (64)]^[Pawn]
+[Piece (64)]^[Empty]
+
+[Side]
