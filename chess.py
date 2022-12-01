@@ -13,7 +13,7 @@ class ChessGame:
         def check_space(key_of_piece, current_key):
             if isinstance(self.board.pieces[current_key], Piece):
                 if self.board.pieces[current_key].side != self.board.pieces[key_of_piece].side:
-                    return current_key
+                    return [current_key, "capture"]
                 return None
             else:
                 return current_key
@@ -24,6 +24,9 @@ class ChessGame:
             current_key = key_of_piece
             while current_key[1] in "1234567": # 8 excluded to avoid having to add 1 outside the list
                 current_key = check_space(key_of_piece, current_key[0] + str(int(current_key[1]) + 1))
+                if type(current_key) == list:
+                    cardinal_move_list.append(current_key[0])
+                    break
                 if current_key == None: break
                 else: cardinal_move_list.append(current_key)
             # East        
@@ -46,6 +49,7 @@ class ChessGame:
                 else: cardinal_move_list.append(current_key)
             return cardinal_move_list
         return cardinal(key_of_piece)
+    
         def diagonal(key_of_piece):
             pass
         
