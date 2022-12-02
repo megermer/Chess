@@ -21,38 +21,17 @@ class ChessGame:
         
         def cardinal(key_of_piece):
             cardinal_move_list = []
-            
-            # North
-            current_key = [key_of_piece]
-            while current_key[0][1] in "1234567": # 8 excluded to avoid having to add 1 outside the list
-                current_key = check_space(key_of_piece, current_key[0][0] + str(int(current_key[0][1]) + 1))
-                if current_key == None: break
-                cardinal_move_list.append(current_key[0])
-                if len(current_key) > 1: break
-            # East        
-            current_key = [key_of_piece]
-            while current_key[0][0] in "abcdefg":
-                current_key = check_space(key_of_piece, chr(ord(current_key[0][0]) + 1) + current_key[0][1])
-                if current_key == None: break
-                cardinal_move_list.append(current_key[0])
-                if len(current_key) > 1: break
-            # South
-            current_key = [key_of_piece]
-            while current_key[0][1] in "2345678":
-                current_key = check_space(key_of_piece, current_key[0][0] + str(int(current_key[0][1]) - 1))
-                if current_key == None: break
-                cardinal_move_list.append(current_key[0])
-                if len(current_key) > 1: break
-            # West
-            current_key = [key_of_piece]
-            while current_key[0][0] in "bcdefgh":
-                current_key = check_space(key_of_piece, chr(ord(current_key[0][0]) - 1) + current_key[0][1])
-                if current_key == None: break
-                cardinal_move_list.append(current_key[0])
-                if len(current_key) > 1: break
+            for direction in ["1234567", "abcdefg", "2345678", "bcdefgh"]: # North, East, South, West
+                current_key = [key_of_piece]
+                while (current_key[0][1] if "2" in direction else current_key[0][0]) in direction:
+                    target_key = ((current_key[0][0] + str(int(current_key[0][1]) + (1 if direction[0] == "1" else -1))) if "2" in direction else\
+                                  (chr(ord(current_key[0][0]) + (1 if direction[0] == "a" else -1)) + current_key[0][1]))
+                    current_key = check_space(key_of_piece, target_key)
+                    if current_key == None: break
+                    cardinal_move_list.append(current_key[0])
+                    if len(current_key) > 1: break
             return cardinal_move_list
-        return cardinal(key_of_piece)
-    
+
         def diagonal(key_of_piece):
             # Northeast
             while (current_key[0] in "abcdefg") and (current_key[1] in "2345678"):
