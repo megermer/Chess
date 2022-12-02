@@ -51,25 +51,40 @@ class ChessGame:
                 cardinal_move_list.append(current_key[0])
                 if len(current_key) > 1: break
             return cardinal_move_list
-        return cardinal(key_of_piece)
     
         def diagonal(key_of_piece):
+            vertical_move_list = []
             # Northeast
-            while (current_key[0] in "abcdefg") and (current_key[1] in "2345678"):
-                current_key = check_space(key_of_piece, chr(ord(current_key[0]) + 1) + str(int(current_key[1]) + 1))
-                if type(current_key) == list:
-                    cardinal_move_list.append(current_key[0])
-                    break
+            current_key = [key_of_piece]
+            while (current_key[0][0] in "abcdefg") and (current_key[0][1] in "1234567"):
+                current_key = check_space(key_of_piece, chr(ord(current_key[0][0]) + 1) + str(int(current_key[0][1]) + 1))
                 if current_key == None: break
-                else: cardinal_move_list.append(current_key)
+                vertical_move_list.append(current_key[0])
+                if len(current_key) > 1: break
             # Southeast
-            while (current_key[0] in "abcdefg") and (current_key[1] in "1234567"):
-                current_key = check_space(key_of_piece, chr(ord(current_key[0]) + 1) + str(int(current_key[1]) - 1))
-                if type(current_key) == list:
-                    cardinal_move_list.append(current_key[0])
-                    break
+            current_key = [key_of_piece]
+            while (current_key[0][0] in "abcdefg") and (current_key[0][1] in "2345678"):
+                current_key = check_space(key_of_piece, chr(ord(current_key[0][0]) + 1) + str(int(current_key[0][1]) - 1))
                 if current_key == None: break
-                else: cardinal_move_list.append(current_key)
+                vertical_move_list.append(current_key[0])
+                if len(current_key) > 1: break
+            # Southwest
+            current_key = [key_of_piece]
+            while (current_key[0][0] in "bcdefgh") and (current_key[0][1] in "2345678"):
+                current_key = check_space(key_of_piece, chr(ord(current_key[0][0]) - 1) + str(int(current_key[0][1]) - 1))
+                if current_key == None: break
+                vertical_move_list.append(current_key[0])
+                if len(current_key) > 1: break
+            # Northwest
+            current_key = [key_of_piece]
+            while (current_key[0][0] in "bcdefgh") and (current_key[0][1] in "1234567"):
+                current_key = check_space(key_of_piece, chr(ord(current_key[0][0]) - 1) + str(int(current_key[0][1]) + 1))
+                if current_key == None: break
+                vertical_move_list.append(current_key[0])
+                if len(current_key) > 1: break
+            return vertical_move_list
+        return cardinal(key_of_piece) + diagonal(key_of_piece)
+                
         
         if isinstance(self.board.pieces[key_of_piece], King):
             legal_move_list.append()
