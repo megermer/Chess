@@ -9,50 +9,82 @@ class ChessGame:
         self.board = Board()
         self.timer = ...
     def legal_moves(self, key_of_piece):
-        def cardinal(key_of_piece):
-            move_list = []
-            current_key = key_of_piece # North
-            while current_key[1] in "1234567": # 8 excluded to avoid having to add 1 outside the list
-                current_key = current_key[0] + str(int(current_key[1]) + 1)
-                if isinstance(self.board.pieces[current_key], Piece):
-                    if self.board.pieces[current_key].side != self.board.pieces[key_of_piece].side:
-                        move_list.append(current_key)
-                    break
-                else:
-                    move_list.append(current_key)
-                    
-            current_key = key_of_piece # East
-            while current_key[0] in "abcdefg":
-                current_key = chr(ord(current_key[0]) + 1) + current_key[1]
-                if isinstance(self.board.pieces[current_key], Piece):
-                    if self.board.pieces[current_key].side != self.board.pieces[key_of_piece].side:
-                        move_list.append(current_key)
-                    break
-                else:
-                    move_list.append(current_key)
-            
-            current_key = key_of_piece # South
-            while current_key[1] in "2345678":
-                current_key = current_key[0] + str(int(current_key[1]) - 1)
-                if isinstance(self.board.pieces[current_key], Piece):
-                    if self.board.pieces[current_key].side != self.board.pieces[key_of_piece].side:
-                        move_list.append(current_key)
-                    break
-                else:
-                    move_list.append(current_key)
-                    
-            current_key = key_of_piece # West
-            while current_key[0] in "bcdefgh":
-                current_key = chr(ord(current_key[0]) - 1) + current_key[1]
-                if isinstance(self.board.pieces[current_key], Piece):
-                    if self.board.pieces[current_key].side != self.board.pieces[key_of_piece].side:
-                        move_list.append(current_key)
-                    break
-                else:
-                    move_list.append(current_key)
-            
-            return move_list
+        legal_move_list = []
         
+        def check_space(key_of_piece, target_key):
+            if isinstance(self.board.pieces[target_key], Piece):
+                if self.board.pieces[target_key].side != self.board.pieces[key_of_piece].side:
+                    return [target_key, "capture"]
+                return None
+            else:
+                return [target_key]
+        
+        def cardinal(key_of_piece):
+            cardinal_move_list = []
+            
+            # North
+            current_key = [key_of_piece]
+            while current_key[0][1] in "1234567": # 8 excluded to avoid having to add 1 outside the list
+                current_key = check_space(key_of_piece, current_key[0][0] + str(int(current_key[0][1]) + 1))
+                if current_key == None: break
+                cardinal_move_list.append(current_key[0])
+                if len(current_key) > 1: break
+            # East        
+            current_key = [key_of_piece]
+            while current_key[0][0] in "abcdefg":
+                current_key = check_space(key_of_piece, chr(ord(current_key[0][0]) + 1) + current_key[0][1])
+                if current_key == None: break
+                cardinal_move_list.append(current_key[0])
+                if len(current_key) > 1: break
+            # South
+            current_key = [key_of_piece]
+            while current_key[0][1] in "2345678":
+                current_key = check_space(key_of_piece, current_key[0][0] + str(int(current_key[0][1]) - 1))
+                if current_key == None: break
+                cardinal_move_list.append(current_key[0])
+                if len(current_key) > 1: break
+            # West
+            current_key = [key_of_piece]
+            while current_key[0][0] in "bcdefgh":
+                current_key = check_space(key_of_piece, chr(ord(current_key[0][0]) - 1) + current_key[0][1])
+                if current_key == None: break
+                cardinal_move_list.append(current_key[0])
+                if len(current_key) > 1: break
+            return cardinal_move_list
+        return cardinal(key_of_piece)
+    
+        def diagonal(key_of_piece):
+            # Northeast
+            while (current_key[0] in "abcdefg") and (current_key[1] in "2345678"):
+                current_key = check_space(key_of_piece, chr(ord(current_key[0]) + 1) + str(int(current_key[1]) + 1))
+                if type(current_key) == list:
+                    cardinal_move_list.append(current_key[0])
+                    break
+                if current_key == None: break
+                else: cardinal_move_list.append(current_key)
+            # Southeast
+            while (current_key[0] in "abcdefg") and (current_key[1] in "1234567"):
+                current_key = check_space(key_of_piece, chr(ord(current_key[0]) + 1) + str(int(current_key[1]) - 1))
+                if type(current_key) == list:
+                    cardinal_move_list.append(current_key[0])
+                    break
+                if current_key == None: break
+                else: cardinal_move_list.append(current_key)
+        
+        if isinstance(self.board.pieces[key_of_piece], King):
+            legal_move_list.append()
+        elif isinstance(self.board.pieces[key_of_piece], Queen):
+            pass
+        elif isinstance(self.board.pieces[key_of_piece], Rook):
+            pass
+        elif isinstance(self.board.pieces[key_of_piece], Bishop):
+            pass
+        elif isinstance(self.board.pieces[key_of_piece], Knight):
+            pass
+        elif isinstance(self.board.pieces[key_of_piece], Pawn):
+            pass
+        else:
+            legal_move_list = []
         return cardinal(key_of_piece)
 
 class Board:
@@ -76,7 +108,8 @@ class Piece:
     def __init__(self, side):
         self.has_moved = False
         self.side = side
-    
+    def is_opposite_side(self, key_of_other):
+            return self.side != self.board.pieces[key_of_other].side
 class King(Piece):
     def __init__(self, side):
         super().__init__(side)
