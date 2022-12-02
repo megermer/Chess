@@ -83,24 +83,24 @@ class ChessGame:
                 vertical_move_list.append(current_key[0])
                 if len(current_key) > 1: break
             return vertical_move_list
-        return cardinal(key_of_piece) + diagonal(key_of_piece)
+        #return cardinal(key_of_piece) + diagonal(key_of_piece)
                 
         
         if isinstance(self.board.pieces[key_of_piece], King):
             legal_move_list.append()
         elif isinstance(self.board.pieces[key_of_piece], Queen):
-            pass
+            legal_move_list += cardinal(key_of_piece) + diagonal(key_of_piece)
         elif isinstance(self.board.pieces[key_of_piece], Rook):
-            pass
+            legal_move_list += cardinal(key_of_piece)
         elif isinstance(self.board.pieces[key_of_piece], Bishop):
-            pass
+            legal_move_list += diagonal(key_of_piece)
         elif isinstance(self.board.pieces[key_of_piece], Knight):
             pass
         elif isinstance(self.board.pieces[key_of_piece], Pawn):
             pass
         else:
             legal_move_list = []
-        return cardinal(key_of_piece)
+        return legal_move_list
 
 class Board:
     def __init__(self):
