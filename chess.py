@@ -8,10 +8,10 @@ class ChessGame:
     def __init__(self):
         self.board = Board()
         self.timer = ...
-    def legal_moves(self, key_of_piece):
+    def legal_moves(self, key_of_piece: str) -> list[str]:
         legal_move_list = []
         
-        def check_space(key_of_piece, target_key):
+        def check_space(key_of_piece: str, target_key: str) -> list[str]:
             if isinstance(self.board.pieces[target_key], Piece):
                 if self.board.pieces[target_key].side != self.board.pieces[key_of_piece].side:
                     return [target_key, "capture"]
@@ -19,7 +19,7 @@ class ChessGame:
             else:
                 return [target_key]
         
-        def cardinal(key_of_piece):
+        def cardinal(key_of_piece: str) -> list[str]:
             cardinal_move_list = []
             for direction in ["1234567", "abcdefg", "2345678", "bcdefgh"]: # North, East, South, West
                 current_key = [key_of_piece]
