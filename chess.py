@@ -8,10 +8,10 @@ class ChessGame:
     def __init__(self):
         self.board = Board()
         self.timer = ...
-    def legal_moves(self, key_of_piece):
+    def legal_moves(self, key_of_piece: str) -> list[str]:
         legal_move_list = []
         
-        def check_space(key_of_piece, target_key):
+        def check_space(key_of_piece: str, target_key: str) -> list[str]:
             if isinstance(self.board.pieces[target_key], Piece):
                 if self.board.pieces[target_key].side != self.board.pieces[key_of_piece].side:
                     return [target_key, "capture"]
@@ -19,39 +19,19 @@ class ChessGame:
             else:
                 return [target_key]
         
-        def cardinal(key_of_piece):
+        def cardinal(key_of_piece: str) -> list[str]:
             cardinal_move_list = []
-            
-            # North
-            current_key = [key_of_piece]
-            while current_key[0][1] in "1234567": # 8 excluded to avoid having to add 1 outside the list
-                current_key = check_space(key_of_piece, current_key[0][0] + str(int(current_key[0][1]) + 1))
-                if current_key == None: break
-                cardinal_move_list.append(current_key[0])
-                if len(current_key) > 1: break
-            # East        
-            current_key = [key_of_piece]
-            while current_key[0][0] in "abcdefg":
-                current_key = check_space(key_of_piece, chr(ord(current_key[0][0]) + 1) + current_key[0][1])
-                if current_key == None: break
-                cardinal_move_list.append(current_key[0])
-                if len(current_key) > 1: break
-            # South
-            current_key = [key_of_piece]
-            while current_key[0][1] in "2345678":
-                current_key = check_space(key_of_piece, current_key[0][0] + str(int(current_key[0][1]) - 1))
-                if current_key == None: break
-                cardinal_move_list.append(current_key[0])
-                if len(current_key) > 1: break
-            # West
-            current_key = [key_of_piece]
-            while current_key[0][0] in "bcdefgh":
-                current_key = check_space(key_of_piece, chr(ord(current_key[0][0]) - 1) + current_key[0][1])
-                if current_key == None: break
-                cardinal_move_list.append(current_key[0])
-                if len(current_key) > 1: break
+            for direction in ["1234567", "abcdefg", "2345678", "bcdefgh"]: # North, East, South, West
+                current_key = [key_of_piece]
+                while (current_key[0][1] if "2" in direction else current_key[0][0]) in direction:
+                    target_key = ((current_key[0][0] + str(int(current_key[0][1]) + (1 if direction[0] == "1" else -1))) if "2" in direction else\
+                                  (chr(ord(current_key[0][0]) + (1 if direction[0] == "a" else -1)) + current_key[0][1]))
+                    current_key = check_space(key_of_piece, target_key)
+                    if current_key == None: break
+                    cardinal_move_list.append(current_key[0])
+                    if len(current_key) > 1: break
             return cardinal_move_list
-    
+
         def diagonal(key_of_piece):
             vertical_move_list = []
             # Northeast
@@ -84,7 +64,6 @@ class ChessGame:
                 if len(current_key) > 1: break
             return vertical_move_list
         #return cardinal(key_of_piece) + diagonal(key_of_piece)
-                
         
         if isinstance(self.board.pieces[key_of_piece], King):
             legal_move_list.append()
