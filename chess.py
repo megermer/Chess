@@ -7,7 +7,10 @@
 
 from enum import Enum
 import sys
-from PySide6.QtWidgets import QApplication, QMainWindow, QGridLayout, QWidget, QPushButton, QLabel
+#from PySide6.QtWidgets import QApplication, QMainWindow, QGridLayout, QWidget, QPushButton, QLabel
+from PySide6.QtGui import *
+from PySide6.QtWidgets import *
+from PySide6.QtCore import *
 
 class MainWindow(QMainWindow):
     
@@ -24,14 +27,16 @@ class MainWindow(QMainWindow):
         self.squares = dict()
         for number in "87654321":
             for letter in "abcdefgh":
-                self.squares[f"{letter}{number}"] = QPushButton("")
                 current_square = f"{letter}{number}"
+                self.squares[current_square] = QPushButton("")
                 self.squares[current_square].setFixedSize(45, 45)
                 self.squares[current_square].clicked.connect(self.handle_click)
+                self.squares[current_square].setText(self.game.board.pieces[current_square].image)
                 if (ord(letter) + int(number)) % 2 == 0:
                     self.squares[current_square].setStyleSheet(f"background-color: {black}")
                 else:
-                    self.squares[current_square].setStyleSheet(f"background-color: {white}") 
+                    self.squares[current_square].setStyleSheet(f"background-color: {white}")
+                
             
         layout = QGridLayout()
         column = 0
@@ -49,15 +54,13 @@ class MainWindow(QMainWindow):
         widget.setLayout(layout)
         self.setCentralWidget(widget)
         
-        
-        
-        
     def handle_click(self):
         clicked_square = self.sender()
         key_list = list(self.squares.keys())
         val_list = list(self.squares.values())
         target = val_list.index(clicked_square)
         possible_moves = self.game.legal_moves(key_list[target])
+        
         print(f"Clicked square: {key_list[target]}")
         print(f"Legal moves: {possible_moves}")
 
@@ -168,42 +171,43 @@ class Piece:
 class King(Piece):
     def __init__(self, side):
         super().__init__(side)
-        self.image = ""
+        self.image = "\u2654" if self.side == Side.W else "\u265A"
         self.value = None
         self.moveset = ...
 
 class Queen(Piece):
     def __init__(self, side):
         super().__init__(side)
-        self.image = ""
+        self.image = "\u2655" if self.side == Side.W else "\u265B"
         self.value = 7
 
 class Rook(Piece):
     def __init__(self, side):
         super().__init__(side)
-        self.image = ""
+        self.image = "\u2656" if self.side == Side.W else "\u265C"
         self.value = 5
 
 class Bishop(Piece):
     def __init__(self, side):
         super().__init__(side)
-        self.image = ""
+        self.image = "\u2657" if self.side == Side.W else "\u265D"
         self.value = 3
 
 class Knight(Piece):
     def __init__(self, side):
         super().__init__(side)
-        self.image = ""
+        self.image = "\u2658" if self.side == Side.W else "\u265E"
         self.value = 3
 
 class Pawn(Piece):
     def __init__(self, side):
         super().__init__(side)
-        self.image = ""
+        self.image = "\u2659" if self.side == Side.W else "\u265F"
         self.value = 1
 
 class Empty:
-    pass
+    def __init__(self):
+        self.image = ""
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
