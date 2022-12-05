@@ -1,4 +1,66 @@
+# Meg Ermer and Kelvin Feitosa
+# CPTR 215 A, Final Project
+# History:
+#	4 Dec: Added front end
+# Sources:
+#	Find key given value in handle_click: https://www.geeksforgeeks.org/python-get-key-from-value-in-dictionary/
+
 from enum import Enum
+import sys
+from PySide6.QtWidgets import QApplication, QMainWindow, QGridLayout, QWidget, QPushButton, QLabel
+
+class MainWindow(QMainWindow):
+    
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Chess")
+        
+        self.game = ChessGame()
+            
+        # Styling:
+        white = "#C19B6C"
+        black = "#312624"
+            
+        self.squares = dict()
+        for number in "87654321":
+            for letter in "abcdefgh":
+                self.squares[f"{letter}{number}"] = QPushButton("")
+                current_square = f"{letter}{number}"
+                self.squares[current_square].setFixedSize(45, 45)
+                self.squares[current_square].clicked.connect(self.handle_click)
+                if (ord(letter) + int(number)) % 2 == 0:
+                    self.squares[current_square].setStyleSheet(f"background-color: {black}")
+                else:
+                    self.squares[current_square].setStyleSheet(f"background-color: {white}") 
+            
+        layout = QGridLayout()
+        column = 0
+        row = 0
+        for key in self.squares:
+            layout.addWidget(self.squares[key], row, column)
+            if column == 7:
+                row += 1
+                column = 0
+            else:
+                column += 1
+        
+                
+        widget = QWidget()
+        widget.setLayout(layout)
+        self.setCentralWidget(widget)
+        
+        
+        
+        
+    def handle_click(self):
+        clicked_square = self.sender()
+        key_list = list(self.squares.keys())
+        val_list = list(self.squares.values())
+        target = val_list.index(clicked_square)
+        possible_moves = self.game.legal_moves(key_list[target])
+        print(f"Clicked square: {key_list[target]}")
+        print(f"Legal moves: {possible_moves}")
+
 
 class Side(Enum):
     W = 0
@@ -63,7 +125,6 @@ class ChessGame:
                 vertical_move_list.append(current_key[0])
                 if len(current_key) > 1: break
             return vertical_move_list
-        #return cardinal(key_of_piece) + diagonal(key_of_piece)
         
         if isinstance(self.board.pieces[key_of_piece], King):
             legal_move_list.append()
@@ -143,3 +204,10 @@ class Pawn(Piece):
 
 class Empty:
     pass
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    app.setStyleSheet("QPushButton{font-size: 80pt}")
+    window = MainWindow()
+    window.show()
+    app.exec()
