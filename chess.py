@@ -33,9 +33,9 @@ class MainWindow(QMainWindow):
                 self.squares[current_square].clicked.connect(self.handle_click)
                 self.squares[current_square].setText(self.game.board.pieces[current_square].image)
                 if (ord(letter) + int(number)) % 2 == 0:
-                    self.squares[current_square].setStyleSheet(f"background-color: {black}")
+                    self.squares[current_square].setStyleSheet(f"font-size: 25pt; background-color: {black}")
                 else:
-                    self.squares[current_square].setStyleSheet(f"background-color: {white}")
+                    self.squares[current_square].setStyleSheet(f"font-size: 25pt; background-color: {white}")
                 
             
         layout = QGridLayout()
