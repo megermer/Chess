@@ -323,40 +323,60 @@ class King(Piece):
         self.image = "\u2654" if self.side == Side.W else "\u265A"
         self.value = None
         self.moveset = ...
+        
+    def __repr__(self):
+        return f"White King" if self.side == Side.W else f"Black King"
 
 class Queen(Piece):
     def __init__(self, side):
         super().__init__(side)
         self.image = "\u2655" if self.side == Side.W else "\u265B"
         self.value = 7
+        
+    def __repr__(self):
+        return f"White Queen" if self.side == Side.W else f"Black Queen"
 
 class Rook(Piece):
     def __init__(self, side):
         super().__init__(side)
         self.image = "\u2656" if self.side == Side.W else "\u265C"
         self.value = 5
+        
+    def __repr__(self):
+        return f"White Rook" if self.side == Side.W else f"Black Rook"
 
 class Bishop(Piece):
     def __init__(self, side):
         super().__init__(side)
         self.image = "\u2657" if self.side == Side.W else "\u265D"
         self.value = 3
+    
+    def __repr__(self):
+        return f"White Bishop" if self.side == Side.W else f"Black Bishop"
 
 class Knight(Piece):
     def __init__(self, side):
         super().__init__(side)
         self.image = "\u2658" if self.side == Side.W else "\u265E"
         self.value = 3
-
+        
+    def __repr__(self):
+        return f"White Knight" if self.side == Side.W else f"Black Knight"
+    
 class Pawn(Piece):
     def __init__(self, side):
         super().__init__(side)
         self.image = "\u2659" if self.side == Side.W else "\u265F"
         self.value = 1
+    
+    def __repr__(self):
+        return f"White Pawn" if self.side == Side.W else f"Black Pawn"
 
 class Empty:
     def __init__(self):
         self.image = ""
+    def __repr__(self):
+        return f"Empty"
 
 if __name__ == "__main__":
     import doctest
