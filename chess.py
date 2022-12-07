@@ -20,6 +20,8 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Chess")
         
         self.game = ChessGame()
+        self.click_state = "Unselected"   
+        self.selected_square = ""
             
         # Styling:
         white = "#C19B6C"
@@ -38,7 +40,7 @@ class MainWindow(QMainWindow):
                 else:
                     self.squares[current_square].setStyleSheet(f"font-size: 25pt; background-color: {white}")
                 
-            
+        
         layout = QGridLayout()
         column = 0
         row = 0
@@ -60,10 +62,33 @@ class MainWindow(QMainWindow):
         key_list = list(self.squares.keys())
         val_list = list(self.squares.values())
         target = val_list.index(clicked_square)
-        possible_moves = self.game.legal_moves(key_list[target])
-        
-        print(f"Clicked square: {key_list[target]}")
-        print(f"Legal moves: {possible_moves}")
+        if self.click_state == "Unselected":
+            possible_moves = self.game.legal_moves(key_list[target])
+            self.click_state = "Square selected"
+            self.selected_square = key_list[target]
+            print(f"Clicked square: {key_list[target]}") # Testing purposes
+            print(f"Legal moves: {possible_moves}") #Testing purposes
+        elif self.click_state == "Square selected":
+            if key_list[target] == self.selected_square:
+                print(f"self.selected_square: {self.selected_square}")
+                print(f"key_list[target]: {key_list[target]}")
+                self.selected_square = ""
+                self.click_state = "Unselected"
+                print(f"Selected square: {self.click_state}") #Testing purposes
+            else:
+                print("else entered")
+                if key_list[target] in self.game.legal_moves(self.selected_square):
+                    self.game.board.move(self.selected_square, key_list[target])
+                    for square in self.squares:
+                        self.squares[square].setText(self.game.board.pieces[square].image)
+
+#                     print(self.game.board.pieces)
+                self.selected_square = ""
+                self.click_state = "Unselected"
+                
+                
+                
+            
 
 
 class Side(Enum):
@@ -154,7 +179,7 @@ class ChessGame:
         
         # verify key passed in is a valid key
         if len(key_of_piece) != 2 or (key_of_piece[0] not in legal_columns) or (key_of_piece[1] not in legal_rows):
-            raise ValueError("Provided key is not a valid chess square")
+            raise ValueError(f"This space is not a valid chess square")
         
         legal_move_list = []
         
@@ -221,6 +246,10 @@ class ChessGame:
             if isinstance(self.board.pieces[square], Bishop) or isinstance(self.board.pieces[square], Queen):
                 if self.board.pieces[square].side != side:
                     threats.append(square)
+        # Threats from knights here
+        
+        # Threats from pawns here
+        
         return threats
 
 class Board:
