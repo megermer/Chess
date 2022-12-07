@@ -64,20 +64,30 @@ class MainWindow(QMainWindow):
         val_list = list(self.squares.values())
         target = val_list.index(clicked_square)
         if self.click_state == "Unselected":
-            possible_moves = self.game.legal_moves(key_list[target])
-            self.click_state = "Square selected"
-            self.selected_square = key_list[target]
+            self.select_square(key_list, target)
         elif self.click_state == "Square selected":
             if key_list[target] == self.selected_square:
-                self.selected_square = ""
-                self.click_state = "Unselected"
+                self.unselect_square()
             else:
                 if key_list[target] in self.game.legal_moves(self.selected_square):
                     self.game.board.move(self.selected_square, key_list[target])
                     for square in self.squares:
                         self.squares[square].setText(self.game.board.pieces[square].image)
-                self.selected_square = ""
-                self.click_state = "Unselected"
+                try:
+                    if self.board.pieces[target].side == self.board.pieces[selected_square].side:
+                        self.select_square(key_list, target)
+                    else:
+                        self.unselect_square()
+                except:
+                    pass
+                self.unselect_square()
+    def select_square(self, key_list, target):
+        possible_moves = self.game.legal_moves(key_list[target])
+        self.click_state = "Square selected"
+        self.selected_square = key_list[target]
+    def unselect_square(self):
+        self.selected_square = ""
+        self.click_state = "Unselected"
 
 class Side(Enum):
     W = 0
@@ -233,7 +243,7 @@ class ChessGame:
             simulation = self.board.pieces.copy()
             simulation[move] = simulation[key_of_piece]
             simulation[key_of_piece] = Empty()
-            if len(self.king_check(side, simulation)) == 0:
+            if len(self.king_check(side, simulation, move if isinstance(self.board.pieces[key_of_piece], King) else None)) == 0:
                 checked_legal_move_list.append(move)
         return checked_legal_move_list
     def king_check(self, side: Side, board: dict = None, king_pos: str = None) -> list[str]:
@@ -254,14 +264,14 @@ class ChessGame:
         """
         board = self.board.pieces if board == None else board
         threats = []
-        king_pos = self.board.white_king_pos if side == Side.W else self.board.black_king_pos
+        if king_pos == None: king_pos = self.board.white_king_pos if side == Side.W else self.board.black_king_pos
         # Check cardinals for Rook & Queen
-        for square in self.cardinal(king_pos):
+        for square in self.cardinal(king_pos, board):
             if isinstance(board[square], Rook) or isinstance(board[square], Queen):
                 if board[square].side != side:
                     threats.append(square)
         # Check diagonals for Bishop & Queen
-        for square in self.diagonal(king_pos):
+        for square in self.diagonal(king_pos, board):
             if isinstance(board[square], Bishop) or isinstance(board[square], Queen):
                 if board[square].side != side:
                     threats.append(square)
