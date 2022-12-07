@@ -90,6 +90,8 @@ class ChessGame:
         self.turn = Side.W
         self.legal_columns = "abcdefgh"
         self.legal_rows = "12345678"
+        self.king_moveset = [[0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1]]
+        self.knight_moveset = [[-2, -1], [-2, 1], [2, -1], [2, 1], [-1, -2], [1, -2], [-1, 2], [1, 2]]
     # Secondary Helper Methods
     def increment_key(self, key: str, amounts: list[int]) -> str:
         return self.increment_column(key, amounts[0]) + self.increment_row(key, amounts[1])
@@ -97,10 +99,11 @@ class ChessGame:
         return chr(ord(key[0]) + amount)
     def increment_row(self, key: str, amount: int) -> str:
         return str(int(key[1]) + amount)
-    def check_space(self, key_of_piece: str, target_key: str) -> list[str]:
+    def check_space(self, key_of_piece: str, target_key: str, board: dict = None) -> list[str]:
+        board = self.board.pieces if board == None else board
         if target_key[0] in self.legal_columns and target_key[1] in self.legal_rows:
-            if isinstance(self.board.pieces[target_key], Piece):
-                if self.board.pieces[target_key].side != self.board.pieces[key_of_piece].side:
+            if isinstance(board[target_key], Piece):
+                if board[target_key].side != board[key_of_piece].side:
                     return [target_key, "capture"]
                 return None
             else:
@@ -109,10 +112,11 @@ class ChessGame:
             raise ValueError("Provided target is not a valid key")
     
     # Primary Helper Methods
-    def cardinal(self, key_of_piece: str) -> list[str]:
+    def cardinal(self, key_of_piece: str, board: dict = None) -> list[str]:
         """
         returns "legal moves" in cardinal directions
         """
+        board = self.board.pieces if board == None else board
         north = "1234567"
         south = "2345678"
         east = "abcdefg"
@@ -125,7 +129,7 @@ class ChessGame:
             while (current_row if "2" in direction else current_column) in direction:
                 target_key = ((current_column + self.increment_row(current_key, 1 if direction[0] == "1" else -1)) if "2" in direction else\
                               (self.increment_column(current_key, 1 if direction[0] == "a" else -1) + current_row))
-                current_key = self.check_space(key_of_piece, target_key)
+                current_key = self.check_space(key_of_piece, target_key, board)
                 if current_key == None: break
                 cardinal_move_list.append(current_key[0])
                 if len(current_key) > 1: break
@@ -134,7 +138,8 @@ class ChessGame:
                 current_column = current_key[0] # letter
         return cardinal_move_list
 
-    def diagonal(self, key_of_piece: str) -> list[str]:
+    def diagonal(self, key_of_piece: str, board: dict = None) -> list[str]:
+        board = self.board.pieces if board == None else board
         north = "1234567"
         south = "2345678"
         east = "abcdefg"
@@ -147,7 +152,7 @@ class ChessGame:
             while (current_column in interordinal[1]) and (current_row in interordinal[0]):
                 target_key = self.increment_column(current_key, 1 if interordinal[1] == east else -1)\
                              + self.increment_row(current_key, 1 if interordinal[0] == north else -1)
-                current_key = self.check_space(key_of_piece, target_key)
+                current_key = self.check_space(key_of_piece, target_key, board)
                 if current_key == None: break
                 vertical_move_list.append(current_key[0])
                 if len(current_key) > 1: break
@@ -155,25 +160,41 @@ class ChessGame:
                 current_row = current_key[1] # number
                 current_column = current_key[0] # letter
         return vertical_move_list
+    # Useful for King and Rook
+    def check_moves_in_moveset(self, key_of_piece: str, moveset: list[list[int]]) -> list[str]:
+        valid_moves = []
+        for move in moveset:
+            target_key = self.increment_key(key_of_piece, move)
+            try:
+                validity = self.check_space(key_of_piece, target_key)
+                if validity != None: valid_moves += validity[:1]
+            except:
+                pass
+        return valid_moves
     def legal_moves(self, key_of_piece: str) -> list[str]:
         """
         >>> game = ChessGame()
         >>> game.board.move('d1', 'd3')
+        >>> game.board.pieces['d3'].value
+        7
+        >>> isinstance(game.board.pieces['d3'], Queen)
+        True
         >>> game.legal_moves('d3')
         ['d4', 'd5', 'd6', 'd7', 'e3', 'f3', 'g3', 'h3', 'c3', 'b3', 'a3', 'e4', 'f5', 'g6', 'h7', 'c4', 'b5', 'a6']
         """
         legal_columns = "abcdefgh"
         legal_rows = "12345678"
-        
+        side = self.board.pieces[key_of_piece].side if isinstance(self.board.pieces[key_of_piece], Empty) == False else ""
         # verify key passed in is a valid key
         if len(key_of_piece) != 2 or (key_of_piece[0] not in legal_columns) or (key_of_piece[1] not in legal_rows):
-            raise ValueError(f"This space is not a valid chess square")
+            raise ValueError("Provided key is not a valid chess square")
         
         legal_move_list = []
         
         # Logic Switch (?) Check appropriate possible moves for each Piece type
         if isinstance(self.board.pieces[key_of_piece], King):
-            legal_move_list.append()
+            moveset = [[0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1]]
+            legal_move_list += self.check_moves_in_moveset(key_of_piece, moveset)
         elif isinstance(self.board.pieces[key_of_piece], Queen):
             legal_move_list += self.cardinal(key_of_piece) + self.diagonal(key_of_piece)
         elif isinstance(self.board.pieces[key_of_piece], Rook):
@@ -182,14 +203,9 @@ class ChessGame:
             legal_move_list += self.diagonal(key_of_piece)
         elif isinstance(self.board.pieces[key_of_piece], Knight):
             moveset = [[-2, -1], [-2, 1], [2, -1], [2, 1], [-1, -2], [1, -2], [-1, 2], [1, 2]]
-            for move in moveset:
-                target_key = self.increment_key(key_of_piece, move)
-                try:
-                    validity = self.check_space(key_of_piece, target_key)
-                    if validity != None: legal_move_list += validity[:1]
-                except:
-                    pass
+            legal_move_list += self.check_moves_in_moveset(key_of_piece, moveset)
         elif isinstance(self.board.pieces[key_of_piece], Pawn):
+            print("Pawn check entered")
             side = self.board.pieces[key_of_piece].side
             direction = 1 if side == Side.W else -1
             ext_moveset = [[1, direction], [-1, direction]] # Capture squares
@@ -212,8 +228,15 @@ class ChessGame:
                     pass 
         else:
             legal_move_list = []
-        return legal_move_list
-    def king_check(self, side: Side) -> list[str]:
+        checked_legal_move_list = []
+        for move in legal_move_list:
+            simulation = self.board.pieces.copy()
+            simulation[move] = simulation[key_of_piece]
+            simulation[key_of_piece] = Empty()
+            if len(self.king_check(side, simulation)) == 0:
+                checked_legal_move_list.append(move)
+        return checked_legal_move_list
+    def king_check(self, side: Side, board: dict = None, king_pos: str = None) -> list[str]:
         """
         returns keys of pieces that are putting the king in check
         >>> game = ChessGame()
@@ -221,23 +244,47 @@ class ChessGame:
         >>> game.board.move('h8', 'e6')
         >>> game.board.move('f8', 'a5')
         >>> game.board.move('d2', 'h6')
+        >>> game.board.move('f7', 'f2')
         >>> game.king_check(Side.W)
-        ['e6', 'a5']
+        ['e6', 'a5', 'f2']
+        >>> game.board.move('d1', 'h5')
+        >>> game.board.move('b2', 'd7')
+        >>> game.king_check(Side.B)
+        ['h5', 'd7']
         """
+        board = self.board.pieces if board == None else board
         threats = []
         king_pos = self.board.white_king_pos if side == Side.W else self.board.black_king_pos
+        # Check cardinals for Rook & Queen
         for square in self.cardinal(king_pos):
-            if isinstance(self.board.pieces[square], Rook) or isinstance(self.board.pieces[square], Queen):
-                if self.board.pieces[square].side != side:
+            if isinstance(board[square], Rook) or isinstance(board[square], Queen):
+                if board[square].side != side:
                     threats.append(square)
+        # Check diagonals for Bishop & Queen
         for square in self.diagonal(king_pos):
-            if isinstance(self.board.pieces[square], Bishop) or isinstance(self.board.pieces[square], Queen):
-                if self.board.pieces[square].side != side:
+            if isinstance(board[square], Bishop) or isinstance(board[square], Queen):
+                if board[square].side != side:
                     threats.append(square)
-        # Threats from knights here
-        
-        # Threats from pawns here
-        
+        # Check for Knights
+        for square in self.knight_moveset:
+            try:
+                key = self.increment_key(king_pos, square)
+                piece = board[key]
+                if isinstance(piece, Knight) and piece.side != side:
+                    threats.append(key)
+            except:
+                pass
+        # Check for Pawns
+        direction = 1 if side == Side.W else -1
+        pawn_capture_moveset = [[1, direction], [-1, direction]]
+        for square in pawn_capture_moveset:
+            try:
+                key = self.increment_key(king_pos, square)
+                piece = board[key]
+                if isinstance(piece, Pawn) and piece.side != side:
+                    threats.append(key)
+            except:
+                pass
         return threats
 
 class Board:
