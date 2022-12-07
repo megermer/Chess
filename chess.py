@@ -59,35 +59,81 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(widget)
         
     def handle_click(self):
-        clicked_square = self.sender()
+#         clicked_square = self.sender()
         key_list = list(self.squares.keys())
         val_list = list(self.squares.values())
-        target = val_list.index(clicked_square)
+        target = val_list.index(self.sender())
         if self.click_state == "Unselected":
-            self.select_square(key_list, target)
+            print("Unselected state entered")
+            if isinstance(self.game.board.pieces[key_list[target]], Empty) == False:
+                self.select_square(key_list, target)
+            else:
+                print("Nothing is still selected: {self.click_state}")
         elif self.click_state == "Square selected":
+            print(f"Square properly selected")
             if key_list[target] == self.selected_square:
                 self.unselect_square()
+                print(f"Piece unselected - click state: {self.click_state}")
+                print(f"Selected square: {self.selected_square}")
             else:
                 if key_list[target] in self.game.legal_moves(self.selected_square):
+                    print(f"This is a legal move: moving {key_list[target]}")
                     self.game.board.move(self.selected_square, key_list[target])
                     for square in self.squares:
                         self.squares[square].setText(self.game.board.pieces[square].image)
+                    self.unselect_square()
                 try:
-                    if self.board.pieces[target].side == self.board.pieces[selected_square].side:
+                    if self.game.board.pieces[key_list[target]].side == self.game.board.pieces[self.selected_square].side:
+                        print(f"Selecting different piece of same team: ")
                         self.select_square(key_list, target)
                     else:
                         self.unselect_square()
                 except:
                     pass
-                self.unselect_square()
+#                 self.unselect_square()
+                
     def select_square(self, key_list, target):
-        possible_moves = self.game.legal_moves(key_list[target])
+#         possible_moves = self.game.legal_moves(key_list[target])
         self.click_state = "Square selected"
         self.selected_square = key_list[target]
+        print(f"self.selected_square: {self.selected_square}")
     def unselect_square(self):
+        print("unselect_square entered")
         self.selected_square = ""
         self.click_state = "Unselected"
+        
+#     def handle_click(self):
+#         clicked_square = self.sender()
+#         key_list = list(self.squares.keys())
+#         val_list = list(self.squares.values())
+#         target = val_list.index(clicked_square)
+#         if self.click_state == "Unselected":
+#             self.select_square(key_list, target)
+#         elif self.click_state == "Square selected":
+#             if key_list[target] == self.selected_square:
+#                 self.unselect_square()
+#                 print(self.click_state)
+#             else:
+#                 if key_list[target] in self.game.legal_moves(self.selected_square):
+#                     self.game.board.move(self.selected_square, key_list[target])
+#                     for square in self.squares:
+#                         self.squares[square].setText(self.game.board.pieces[square].image)
+#                 try:
+#                     if self.game.board.pieces[key_list[target]].side == self.game.board.pieces[self.selected_square].side:
+#                         self.select_square(key_list, target)
+#                     else:
+#                         self.unselect_square()
+#                 except:
+#                     pass
+#                 self.unselect_square()
+#                 
+#     def select_square(self, key_list, target):
+#         possible_moves = self.game.legal_moves(key_list[target])
+#         self.click_state = "Square selected"
+#         self.selected_square = key_list[target]
+#     def unselect_square(self):
+#         self.selected_square = ""
+#         self.click_state = "Unselected"
 
 class Side(Enum):
     W = 0
@@ -215,7 +261,7 @@ class ChessGame:
             moveset = [[-2, -1], [-2, 1], [2, -1], [2, 1], [-1, -2], [1, -2], [-1, 2], [1, 2]]
             legal_move_list += self.check_moves_in_moveset(key_of_piece, moveset)
         elif isinstance(self.board.pieces[key_of_piece], Pawn):
-            print("Pawn check entered")
+#             print("Pawn check entered")
             side = self.board.pieces[key_of_piece].side
             direction = 1 if side == Side.W else -1
             ext_moveset = [[1, direction], [-1, direction]] # Capture squares
