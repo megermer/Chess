@@ -69,6 +69,7 @@ class MainWindow(QMainWindow):
                 self.select_square(key_list, target)
             else:
                 print("Nothing is still selected: {self.click_state}")
+                
         elif self.click_state == "Square selected":
             print(f"Square properly selected")
             if key_list[target] == self.selected_square:
@@ -218,6 +219,9 @@ class ChessGame:
         return vertical_move_list
     # Useful for King and Rook
     def check_moves_in_moveset(self, key_of_piece: str, moveset: list[list[int]]) -> list[str]:
+        '''
+        Validates a move if it is a capture or empty space.
+        '''
         valid_moves = []
         for move in moveset:
             target_key = self.increment_key(key_of_piece, move)
@@ -250,7 +254,10 @@ class ChessGame:
         # Logic Switch (?) Check appropriate possible moves for each Piece type
         if isinstance(self.board.pieces[key_of_piece], King):
             moveset = [[0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1]]
+            castling_moveset = [[2, 0], [-2, 0]]
             legal_move_list += self.check_moves_in_moveset(key_of_piece, moveset)
+            if not self.board.pieces[key_of_piece].has_moved:
+                pass
         elif isinstance(self.board.pieces[key_of_piece], Queen):
             legal_move_list += self.cardinal(key_of_piece) + self.diagonal(key_of_piece)
         elif isinstance(self.board.pieces[key_of_piece], Rook):
@@ -359,6 +366,7 @@ class Board:
         self.turn = Side.W
     def move(self, start_pos, end_pos):
         # If move is a capture (end_pos not an Empty)
+        self.pieces[start_pos].has_moved = True
         if isinstance(self.pieces[end_pos], Empty) == False:
             self.captured.append(self.pieces[end_pos])
         self.pieces[end_pos] = self.pieces[start_pos]
