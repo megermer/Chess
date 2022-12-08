@@ -160,7 +160,7 @@ class ChessGame:
         board = self.board.pieces if board == None else board
         if target_key[0] in self.legal_columns and target_key[1] in self.legal_rows:
             if isinstance(board[target_key], Piece):
-                if board[target_key].side != board[key_of_piece].side:
+                if board[target_key].side != self.board.turn:
                     return [target_key, "capture"]
                 return None
             else:
@@ -239,6 +239,7 @@ class ChessGame:
         7
         >>> isinstance(game.board.pieces['d3'], Queen)
         True
+        >>> game.board.turn == Side.W
         >>> game.legal_moves('d3')
         ['d4', 'd5', 'd6', 'd7', 'e3', 'f3', 'g3', 'h3', 'c3', 'b3', 'a3', 'e4', 'f5', 'g6', 'h7', 'c4', 'b5', 'a6']
         """
@@ -256,17 +257,30 @@ class ChessGame:
             moveset = [[0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1]]
             castling_moveset = [[2, 0], [-2, 0]]
             legal_move_list += self.check_moves_in_moveset(key_of_piece, moveset)
+            
             if not self.board.pieces[key_of_piece].has_moved:
-                pass
+                king_side_rook = self.increment_key(key_of_piece, [3, 0])
+                if isinstance(self.board.pieces[king_side_rook], Rook): # Checks for King side rook
+                    if not self.board.pieces[king_side_rook].has_moved:
+                        king_side_check_squares = [self.increment_key(key_of_piece, move) for move in [[2, 0], [1, 0]]]
+                        for square in king_side_check_squares:
+                            if isinstance(self.board.pieces[square], Empty) and\
+                               len(self.king_check(side, self.board.pieces.copy(), square)) == 0:
+                                pass
+                                
         elif isinstance(self.board.pieces[key_of_piece], Queen):
             legal_move_list += self.cardinal(key_of_piece) + self.diagonal(key_of_piece)
+            
         elif isinstance(self.board.pieces[key_of_piece], Rook):
             legal_move_list += self.cardinal(key_of_piece)
+            
         elif isinstance(self.board.pieces[key_of_piece], Bishop):
             legal_move_list += self.diagonal(key_of_piece)
+            
         elif isinstance(self.board.pieces[key_of_piece], Knight):
             moveset = [[-2, -1], [-2, 1], [2, -1], [2, 1], [-1, -2], [1, -2], [-1, 2], [1, 2]]
             legal_move_list += self.check_moves_in_moveset(key_of_piece, moveset)
+            
         elif isinstance(self.board.pieces[key_of_piece], Pawn):
 #             print("Pawn check entered")
             side = self.board.pieces[key_of_piece].side
@@ -291,6 +305,7 @@ class ChessGame:
                     pass 
         else:
             legal_move_list = []
+            
         checked_legal_move_list = []
         for move in legal_move_list:
             simulation = self.board.pieces.copy()
@@ -298,6 +313,7 @@ class ChessGame:
             simulation[key_of_piece] = Empty()
             if len(self.king_check(side, simulation, move if isinstance(self.board.pieces[key_of_piece], King) else None)) == 0:
                 checked_legal_move_list.append(move)
+                
         return checked_legal_move_list
     def king_check(self, side: Side, board: dict = None, king_pos: str = None) -> list[str]:
         """
