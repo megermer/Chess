@@ -62,7 +62,7 @@ class MainWindow(QMainWindow):
 #         clicked_square = self.sender()
         key_list = list(self.squares.keys())
         val_list = list(self.squares.values())
-        target = val_list.index(self.sender())
+        target = val_list.index(self.sender())        
         if self.click_state == "Unselected":
             print("Unselected state entered")
             if isinstance(self.game.board.pieces[key_list[target]], Empty) == False:
@@ -143,7 +143,7 @@ class ChessGame:
     def __init__(self):
         self.board = Board()
         self.timer = ...
-        self.turn = Side.W
+#         self.turn = Side.W
         self.legal_columns = "abcdefgh"
         self.legal_rows = "12345678"
         self.king_moveset = [[0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1]]
@@ -356,6 +356,7 @@ class Board:
         self.captured = []
         self.white_king_pos = "e1"
         self.black_king_pos = "e8"
+        self.turn = Side.W
     def move(self, start_pos, end_pos):
         # If move is a capture (end_pos not an Empty)
         if isinstance(self.pieces[end_pos], Empty) == False:
@@ -368,6 +369,7 @@ class Board:
                 self.white_king_pos = end_pos
             else:
                 self.black_king_pos = end_pos
+        self.turn = Side.W if self.turn == Side.B else Side.B
 
 class Piece:
     def __init__(self, side):
