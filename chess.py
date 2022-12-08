@@ -65,7 +65,7 @@ class MainWindow(QMainWindow):
         target = val_list.index(self.sender())        
         if self.click_state == "Unselected":
             print("Unselected state entered")
-            if isinstance(self.game.board.pieces[key_list[target]], Empty) == False:
+            if isinstance(self.game.board.pieces[key_list[target]], Piece) and self.game.board.pieces[key_list[target]].side == self.game.board.turn:
                 self.select_square(key_list, target)
             else:
                 print("Nothing is still selected: {self.click_state}")
