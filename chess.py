@@ -102,39 +102,7 @@ class MainWindow(QMainWindow):
         print("unselect_square entered")
         self.selected_square = ""
         self.click_state = "Unselected"
-        
-#     def handle_click(self):
-#         clicked_square = self.sender()
-#         key_list = list(self.squares.keys())
-#         val_list = list(self.squares.values())
-#         target = val_list.index(clicked_square)
-#         if self.click_state == "Unselected":
-#             self.select_square(key_list, target)
-#         elif self.click_state == "Square selected":
-#             if key_list[target] == self.selected_square:
-#                 self.unselect_square()
-#                 print(self.click_state)
-#             else:
-#                 if key_list[target] in self.game.legal_moves(self.selected_square):
-#                     self.game.board.move(self.selected_square, key_list[target])
-#                     for square in self.squares:
-#                         self.squares[square].setText(self.game.board.pieces[square].image)
-#                 try:
-#                     if self.game.board.pieces[key_list[target]].side == self.game.board.pieces[self.selected_square].side:
-#                         self.select_square(key_list, target)
-#                     else:
-#                         self.unselect_square()
-#                 except:
-#                     pass
-#                 self.unselect_square()
-#                 
-#     def select_square(self, key_list, target):
-#         possible_moves = self.game.legal_moves(key_list[target])
-#         self.click_state = "Square selected"
-#         self.selected_square = key_list[target]
-#     def unselect_square(self):
-#         self.selected_square = ""
-#         self.click_state = "Unselected"
+
 
 class Side(Enum):
     W = 0
@@ -239,7 +207,7 @@ class ChessGame:
         7
         >>> isinstance(game.board.pieces['d3'], Queen)
         True
-        >>> game.board.turn == Side.W
+        >>> game.board.turn = Side.W
         >>> game.legal_moves('d3')
         ['d4', 'd5', 'd6', 'd7', 'e3', 'f3', 'g3', 'h3', 'c3', 'b3', 'a3', 'e4', 'f5', 'g6', 'h7', 'c4', 'b5', 'a6']
         """
@@ -266,7 +234,7 @@ class ChessGame:
                         for square in king_side_check_squares:
                             if isinstance(self.board.pieces[square], Empty) and\
                                len(self.king_check(side, self.board.pieces.copy(), square)) == 0:
-                                pass
+                                print("works")
                                 
         elif isinstance(self.board.pieces[key_of_piece], Queen):
             legal_move_list += self.cardinal(key_of_piece) + self.diagonal(key_of_piece)
@@ -337,12 +305,12 @@ class ChessGame:
         # Check cardinals for Rook & Queen
         for square in self.cardinal(king_pos, board):
             if isinstance(board[square], Rook) or isinstance(board[square], Queen):
-                if board[square].side != side:
+                if board[square].side != self.board.turn: #CHANGING THIS
                     threats.append(square)
         # Check diagonals for Bishop & Queen
         for square in self.diagonal(king_pos, board):
             if isinstance(board[square], Bishop) or isinstance(board[square], Queen):
-                if board[square].side != side:
+                if board[square].side != self.board.turn: #CHANGING THIS
                     threats.append(square)
         # Check for Knights
         for square in self.knight_moveset:
