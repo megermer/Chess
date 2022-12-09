@@ -62,29 +62,33 @@ class MainWindow(QMainWindow):
 #         clicked_square = self.sender()
         key_list = list(self.squares.keys())
         val_list = list(self.squares.values())
-        target = val_list.index(self.sender())        
+        target = val_list.index(self.sender())
+        board = self.game.board.pieces
         if self.click_state == "Unselected":
             print("Unselected state entered")
-            if isinstance(self.game.board.pieces[key_list[target]], Piece) and self.game.board.pieces[key_list[target]].side == self.game.board.turn:
+            if isinstance(board[key_list[target]], Piece) and\
+               board[key_list[target]].side == self.game.board.turn:
                 self.select_square(key_list, target)
             else:
                 print("Nothing is still selected: {self.click_state}")
                 
         elif self.click_state == "Square selected":
-            print(f"Square properly selected")
+            print(f"Square is selected {self.selected_square}")
             if key_list[target] == self.selected_square:
                 self.unselect_square()
                 print(f"Piece unselected - click state: {self.click_state}")
                 print(f"Selected square: {self.selected_square}")
             else:
+                print(self.game.legal_moves(self.selected_square))
                 if key_list[target] in self.game.legal_moves(self.selected_square):
                     print(f"This is a legal move: moving {key_list[target]}")
                     self.game.board.move(self.selected_square, key_list[target])
                     for square in self.squares:
-                        self.squares[square].setText(self.game.board.pieces[square].image)
+                        self.squares[square].setText(board[square].image)
                     self.unselect_square()
                 try:
-                    if self.game.board.pieces[key_list[target]].side == self.game.board.pieces[self.selected_square].side:
+                    if board[key_list[target]].side ==\
+                       board[self.selected_square].side:
                         print(f"Selecting different piece of same team: ")
                         self.select_square(key_list, target)
                     else:
@@ -213,28 +217,52 @@ class ChessGame:
         """
         legal_columns = "abcdefgh"
         legal_rows = "12345678"
-        side = self.board.pieces[key_of_piece].side if isinstance(self.board.pieces[key_of_piece], Empty) == False else ""
+        side = self.board.pieces[key_of_piece].side if isinstance(self.board.pieces[key_of_piece], Piece) else self.board.turn
         # verify key passed in is a valid key
         if len(key_of_piece) != 2 or (key_of_piece[0] not in legal_columns) or (key_of_piece[1] not in legal_rows):
             raise ValueError("Provided key is not a valid chess square")
         
         legal_move_list = []
-        
+        checked_legal_move_list = []
         # Logic Switch (?) Check appropriate possible moves for each Piece type
         if isinstance(self.board.pieces[key_of_piece], King):
             moveset = [[0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1]]
             castling_moveset = [[2, 0], [-2, 0]]
             legal_move_list += self.check_moves_in_moveset(key_of_piece, moveset)
-            
-            if not self.board.pieces[key_of_piece].has_moved:
+            print(self.king_check(side))
+            if (not self.board.pieces[key_of_piece].has_moved) and len(self.king_check(side)) == 0: # King Hasn't Moved & isn't in check
+                print("King hasn't moved and not in check")
                 king_side_rook = self.increment_key(key_of_piece, [3, 0])
-                if isinstance(self.board.pieces[king_side_rook], Rook): # Checks for King side rook
-                    if not self.board.pieces[king_side_rook].has_moved:
-                        king_side_check_squares = [self.increment_key(key_of_piece, move) for move in [[2, 0], [1, 0]]]
-                        for square in king_side_check_squares:
-                            if isinstance(self.board.pieces[square], Empty) and\
-                               len(self.king_check(side, self.board.pieces.copy(), square)) == 0:
-                                print("works")
+                queen_side_rook = self.increment_key(key_of_piece, [-4, 0])
+                rooks = [king_side_rook, queen_side_rook]
+                
+                king_side_check_squares = [self.increment_key(key_of_piece, move)\
+                                           for move in [[2, 0], [1, 0]]]
+                queen_side_check_squares = [self.increment_key(key_of_piece, move)\
+                                            for move in [[-1, 0], [-2, 0], [-3, 0]]]
+                check_squares = [king_side_check_squares, queen_side_check_squares]
+                
+                king_side_castle_threats = 0
+                queen_side_castle_threats = 0
+                
+                for rook, squares in zip(rooks, check_squares):
+                    if isinstance(self.board.pieces[rook], Rook):
+                        if not self.board.pieces[rook].has_moved:
+                            for square in squares:
+                                if not (isinstance(self.board.pieces[square], Empty) and
+                                   len(self.king_check(side, self.board.pieces, square)) == 0):
+                                    if rook == king_side_rook:
+                                        king_side_castle_threats += 1
+                                        print("King side threat found")
+                                    else:
+                                        queen_side_castle_threats += 1
+                                        print("Queen side threat found")
+                if king_side_castle_threats == 0:
+                    checked_legal_move_list.append('g1' if side == Side.W else 'g8')
+                if queen_side_castle_threats == 0:
+                    checked_legal_move_list.append('c1' if side == Side.W else 'c8')
+                            
+                            
                                 
         elif isinstance(self.board.pieces[key_of_piece], Queen):
             legal_move_list += self.cardinal(key_of_piece) + self.diagonal(key_of_piece)
@@ -274,7 +302,6 @@ class ChessGame:
         else:
             legal_move_list = []
             
-        checked_legal_move_list = []
         for move in legal_move_list:
             simulation = self.board.pieces.copy()
             simulation[move] = simulation[key_of_piece]
@@ -283,21 +310,25 @@ class ChessGame:
                 checked_legal_move_list.append(move)
                 
         return checked_legal_move_list
+    
     def king_check(self, side: Side, board: dict = None, king_pos: str = None) -> list[str]:
         """
-        returns keys of pieces that are putting the king in check
+        returns keys of pieces that are putting the king in check. if returns an empty list, king
+        is not in check
         >>> game = ChessGame()
         >>> game.board.move('e2', 'd3')
         >>> game.board.move('h8', 'e6')
         >>> game.board.move('f8', 'a5')
         >>> game.board.move('d2', 'h6')
         >>> game.board.move('f7', 'f2')
+        >>> game.board.move('h2', 'h3')
         >>> game.king_check(Side.W)
         ['e6', 'a5', 'f2']
         >>> game.board.move('d1', 'h5')
         >>> game.board.move('b2', 'd7')
+        >>> game.board.move('h1', 'e7')
         >>> game.king_check(Side.B)
-        ['h5', 'd7']
+        ['e7', 'h5', 'd7']
         """
         board = self.board.pieces if board == None else board
         threats = []
@@ -349,8 +380,22 @@ class Board:
         self.black_king_pos = "e8"
         self.turn = Side.W
     def move(self, start_pos, end_pos):
-        # If move is a capture (end_pos not an Empty)
+        # Castling here:
+        if isinstance(self.pieces[start_pos], King) and not self.pieces[start_pos].has_moved:
+            if end_pos == 'g1':
+                self.pieces['f1'] = self.pieces['h1']
+                self.pieces['h1'] = Empty()
+            elif end_pos == 'c1':
+                self.pieces['d1'] = self.pieces['a1']
+                self.pieces['a1'] = Empty()
+            elif end_pos == 'g8':
+                self.pieces['f8'] = self.pieces['h8']
+                self.pieces['h8'] = Empty()
+            elif end_pos == 'c8':
+                self.pieces['d8'] = self.pieces['a8']
+                self.pieces['a8'] = Empty()
         self.pieces[start_pos].has_moved = True
+        # If move is a capture (end_pos not an Empty)
         if isinstance(self.pieces[end_pos], Empty) == False:
             self.captured.append(self.pieces[end_pos])
         self.pieces[end_pos] = self.pieces[start_pos]
