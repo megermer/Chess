@@ -25,8 +25,10 @@ class MainWindow(QMainWindow):
         
             
         # Styling:
-        white = "#C19B6C"
-        black = "#312624"
+#         white = "#C19B6C"
+#         black = "#312624"
+        white = "#EEEED4"
+        black = "#7C955C"
             
         self.squares = dict()
         for number in "87654321":
