@@ -25,8 +25,10 @@ class MainWindow(QMainWindow):
         
             
         # Styling:
-        white = "#C19B6C"
-        black = "#312624"
+#         white = "#C19B6C"
+#         black = "#312624"
+        white = "#EEEED4"
+        black = "#7C955C"
             
         self.squares = dict()
         for number in "87654321":
@@ -349,8 +351,22 @@ class Board:
         self.black_king_pos = "e8"
         self.turn = Side.W
     def move(self, start_pos, end_pos):
-        # If move is a capture (end_pos not an Empty)
+        # Castling here:
+        if isinstance(self.pieces[start_pos], King) and not self.pieces[start_pos].has_moved:
+            if end_pos == 'g1':
+                self.pieces['f1'] = self.pieces['h1']
+                self.pieces['h1'] = Empty()
+            elif end_pos == 'c1':
+                self.pieces['d1'] = self.pieces['a1']
+                self.pieces['a1'] = Empty()
+            elif end_pos == 'g8':
+                self.pieces['f8'] = self.pieces['h8']
+                self.pieces['h8'] = Empty()
+            elif end_pos == 'c8':
+                self.pieces['d8'] = self.pieces['a8']
+                self.pieces['a8'] = Empty()
         self.pieces[start_pos].has_moved = True
+        # If move is a capture (end_pos not an Empty)
         if isinstance(self.pieces[end_pos], Empty) == False:
             self.captured.append(self.pieces[end_pos])
         self.pieces[end_pos] = self.pieces[start_pos]
