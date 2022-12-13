@@ -33,6 +33,8 @@ class MainWindow(QMainWindow):
 #         black = "#312624"
         white = "#EEEED4"
         black = "#7C955C"
+        font_size = "font-size: 25pt"
+        border = "border-radius: 2px; border: 1px solid gray"
             
         self.squares = dict()
         for number in "87654321":
@@ -43,30 +45,81 @@ class MainWindow(QMainWindow):
                 self.squares[current_square].clicked.connect(self.handle_click)
                 self.squares[current_square].setText(self.game.board.pieces[current_square].image)
                 if (ord(letter) + int(number)) % 2 == 0:
-                    self.squares[current_square].setStyleSheet(f"font-size: 25pt; background-color: {black}")
+                    self.squares[current_square].setStyleSheet(f"{font_size}; {border}; background-color: {black}")
                 else:
-                    self.squares[current_square].setStyleSheet(f"font-size: 25pt; background-color: {white}")
+                    self.squares[current_square].setStyleSheet(f"{font_size}; {border}; background-color: {white}")
         
+#         layout = QGridLayout()
+#         column = 0
+#         row = 0
+#         for key in self.squares:
+#             layout.addWidget(self.squares[key], row, column)
+#             if column == 7:
+#                 row += 1
+#                 column = 0
+#             else:
+#                 column += 1
+                
+        # Row label creations
+        self.row8 = QLabel("8")
+        self.row7 = QLabel("7")
+        self.row6 = QLabel("6")
+        self.row5 = QLabel("5")
+        self.row4 = QLabel("4")
+        self.row3 = QLabel("3")
+        self.row2 = QLabel("2")
+        self.row1 = QLabel("1")
+        
+        # Column label creations
+        self.col_a = QLabel("     a")
+        self.col_b = QLabel("     b")
+        self.col_c = QLabel("     c")
+        self.col_d = QLabel("     d")
+        self.col_e = QLabel("     e")
+        self.col_f = QLabel("     f")
+        self.col_g = QLabel("     g")
+        self.col_h = QLabel("     h")
+        
+        # Sets the layout
         layout = QGridLayout()
-        column = 0
+        
+        layout.addWidget(self.row8, 0, 0)
+        layout.addWidget(self.row7, 1, 0)
+        layout.addWidget(self.row6, 2, 0)
+        layout.addWidget(self.row5, 3, 0)
+        layout.addWidget(self.row4, 4, 0)
+        layout.addWidget(self.row3, 5, 0)
+        layout.addWidget(self.row2, 6, 0)
+        layout.addWidget(self.row1, 7, 0)
+        
+        layout.addWidget(self.col_a, 8, 1)
+        layout.addWidget(self.col_b, 8, 2)
+        layout.addWidget(self.col_c, 8, 3)
+        layout.addWidget(self.col_d, 8, 4)
+        layout.addWidget(self.col_e, 8, 5)
+        layout.addWidget(self.col_f, 8, 6)
+        layout.addWidget(self.col_g, 8, 7)
+        layout.addWidget(self.col_h, 8, 8) 
+        
+        column = 1
         row = 0
         for key in self.squares:
             layout.addWidget(self.squares[key], row, column)
-            if column == 7:
+            if column == 8:
                 row += 1
-                column = 0
+                column = 1
             else:
                 column += 1
         
         self.new_game = QPushButton("Offer Draw")
-        self.new_game.setStyleSheet(f"font-size: 12pt")
+        self.new_game.setStyleSheet("font-size: 12pt; font-weight: normal;")
         self.new_game.setFixedSize(90, 45)
         self.new_game.clicked.connect(self.restart)
         
         
         self.announcement = QLabel("")
-        self.announcement.setStyleSheet(f"font-size: 12pt; font-weight: bold;")
-        self.announcement.setFixedSize(90, 45)
+        self.announcement.setStyleSheet(f"font-size: 16pt; font-weight: bold;")
+        self.announcement.setFixedSize(120, 45)
         
         info_layout = QHBoxLayout()
         info_layout.addWidget(self.announcement)
@@ -78,6 +131,7 @@ class MainWindow(QMainWindow):
         
         widget = QWidget()
         widget.setLayout(outer_layout)
+        widget.setStyleSheet("background-color: #b0b3b8;")
         self.setCentralWidget(widget)
         
         
@@ -85,11 +139,13 @@ class MainWindow(QMainWindow):
         if self.restart_button_state == "N/A":
             self.restart_button_state = "Confirm"
             self.new_game.setText("Confirm\nDraw?")
+            self.new_game.setStyleSheet("font-size: 13pt; font-weight: bold;")
             
         elif self.restart_button_state == "Confirm":
             self.click_state = "Paused"
             self.announcement.setText("DRAW")
             self.restart_button_state = "New Game"
+            self.new_game.setStyleSheet("font-size: 12pt; font-weight: normal;")
             self.new_game.setText("New Game")
         
         elif self.restart_button_state == "New Game":
@@ -111,6 +167,7 @@ class MainWindow(QMainWindow):
         if self.click_state != "Paused":
             self.restart_button_state = "N/A"
             self.new_game.setText("Offer Draw")
+            self.new_game.setStyleSheet("font-size: 12pt; font-weight: normal;")
         if self.click_state == "Paused":
             pass
         elif self.click_state == "Unselected":
@@ -614,12 +671,12 @@ class Board:
         # Check for En Passant and Promotion
         if isinstance(self.pieces[end_pos], Pawn):
             # If not en passant check for promotion
+            enp = True
             if self.pieces[end_pos].enp == False:
                 enp = False
             elif len(self.pieces[end_pos].enp) == 0:
                 enp = False
             if not enp:
-                print("En Passant False")
                 if (self.turn == Side.W and end_pos[1] == "8") or\
                    (self.turn == Side.B and end_pos[1] == "1"):
                     print("Pawn Promoted")
