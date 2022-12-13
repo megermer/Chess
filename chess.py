@@ -54,17 +54,6 @@ class MainWindow(QMainWindow):
                 column = 0
             else:
                 column += 1
-
-        
-        self.new_game = QPushButton("New Game")
-        self.new_game.setStyleSheet(f"font-size: 12pt")
-        self.new_game.setFixedSize(90, 45)
-        self.new_game.clicked.connect(self.restart)
-        
-        outer_layout = QGridLayout()
-        outer_layout.addLayout(layout, 0, 0)
-        outer_layout.addWidget(self.new_game, 1, 0)
-          
           
         widget = QWidget()
         widget.setLayout(layout)
@@ -100,7 +89,8 @@ class MainWindow(QMainWindow):
 #                     for square in self.squares2:
 #                         self.squares2[square].setText(board[square].image)
 #                     self.setCentralWidget(self.widget if self.board.turn == Side.W else self.widget2)
-                    self.check_mates()
+                    mate_status = self.game.check_mates()
+                    print(f"Mate status: {mate_status}")
                     self.unselect_square()
                 try:
                     if board[key_list[target]].side ==\
@@ -261,6 +251,8 @@ class ChessGame:
                 king_side_castle_threats = 0
                 queen_side_castle_threats = 0
                 
+                # Terrible sequence of nested ifs that I would in retrospect structure differently
+                # but it looks kinda cool so I'm just leaving it cause screw it
                 for rook, squares in zip(rooks, check_squares):
                     if isinstance(self.board.pieces[rook], Rook):
                         if not self.board.pieces[rook].has_moved:
@@ -406,6 +398,32 @@ class ChessGame:
             except:
                 pass
         return threats
+    def check_mates(self):
+        """
+        Checks if the current side is in check, if so looks for legal moves. If none found, it's checkmate for
+        opposing side. If current side is not in check, looks for legal moves. If none found, it's stalemate.
+        """
+        def legal_move_exists(side, board):
+            for square in board:
+                if isinstance(board[square], Empty):
+                    pass
+                elif board[square].side != side:
+                    pass
+                elif len(self.legal_moves(square)) != 0:
+                    return True # As soon as a legal move is found
+            return False # If no legal moves found
+        
+        side = self.board.turn
+        board = self.board.pieces
+        # If current side is in check
+        if len(self.king_check(side)) != 0:
+            checkmate = False if legal_move_exists(side, board) else True
+            return False if not checkmate else ["Checkmate", side]
+        # If current side not in check, check for stalemate
+        else:
+            stalemate = False if legal_move_exists(side, board) else True
+            return False if not stalemate else ["Stalemate", side]
+            
 
 class Board:
     def __init__(self):
