@@ -55,6 +55,15 @@ class MainWindow(QMainWindow):
             else:
                 column += 1
                 
+        self.new_game = QPushButton("New Game")
+        self.new_game.setStyleSheet(f"font-size: 12pt")
+        self.new_game.setFixedSize(90, 45)
+        self.new_game.clicked.connect(self.restart)
+        
+        outer_layout = QGridLayout()
+        outer_layout.addLayout(layout, 0, 0)
+        outer_layout.addWidget(self.new_game, 1, 0)
+                
         widget = QWidget()
         widget.setLayout(layout)
         self.setCentralWidget(widget)
