@@ -55,6 +55,12 @@ class MainWindow(QMainWindow):
             else:
                 column += 1
                 
+        
+        
+        
+        
+        
+        
         self.new_game = QPushButton("New Game")
         self.new_game.setStyleSheet(f"font-size: 12pt")
         self.new_game.setFixedSize(90, 45)
