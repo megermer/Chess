@@ -99,9 +99,10 @@ class MainWindow(QMainWindow):
                     self.game.board.move(self.selected_square, key_list[target])
                     for square in self.squares:
                         self.squares[square].setText(board[square].image)
-                    for square in self.squares2:
-                        self.squares2[square].setText(board[square].image)
+#                     for square in self.squares2:
+#                         self.squares2[square].setText(board[square].image)
 #                     self.setCentralWidget(self.widget if self.board.turn == Side.W else self.widget2)
+                    self.check_mates()
                     self.unselect_square()
                 try:
                     if board[key_list[target]].side ==\
@@ -461,6 +462,7 @@ class Board:
                 self.black_king_pos = end_pos
         self.last_move = [start_pos, end_pos]
         self.turn = Side.W if self.turn == Side.B else Side.B
+        
 
 class Piece:
     def __init__(self, side):
