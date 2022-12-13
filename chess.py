@@ -33,7 +33,7 @@ class MainWindow(QMainWindow):
 #         black = "#312624"
         white = "#EEEED4"
         black = "#7C955C"
-        font_size = "font-size: 25pt"
+        font_size = "font-size: 26pt"
         border = "border-radius: 2px; border: 1px solid gray"
             
         self.squares = dict()
@@ -41,7 +41,7 @@ class MainWindow(QMainWindow):
             for letter in "abcdefgh":
                 current_square = f"{letter}{number}"
                 self.squares[current_square] = QPushButton("")
-                self.squares[current_square].setFixedSize(45, 45)
+                self.squares[current_square].setFixedSize(48, 48)
                 self.squares[current_square].clicked.connect(self.handle_click)
                 self.squares[current_square].setText(self.game.board.pieces[current_square].image)
                 if (ord(letter) + int(number)) % 2 == 0:
@@ -131,7 +131,7 @@ class MainWindow(QMainWindow):
         
         widget = QWidget()
         widget.setLayout(outer_layout)
-        widget.setStyleSheet("background-color: #b0b3b8;")
+        widget.setStyleSheet("background-color: #d2e7d6;")
         self.setCentralWidget(widget)
         
         
