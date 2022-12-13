@@ -43,8 +43,6 @@ class MainWindow(QMainWindow):
                     self.squares[current_square].setStyleSheet(f"font-size: 25pt; background-color: {black}")
                 else:
                     self.squares[current_square].setStyleSheet(f"font-size: 25pt; background-color: {white}")
-            
-        self.squares2 = self.squares.copy()
         
         layout = QGridLayout()
         column = 0
@@ -56,17 +54,6 @@ class MainWindow(QMainWindow):
                 column = 0
             else:
                 column += 1
-
-#         layout_flipped = QGridLayout()
-#         column = 7
-#         row = 7
-#         for key in self.squares2:
-#             layout_flipped.addWidget(self.squares2[key], row, column)
-#             if column == 0:
-#                 row -= 1
-#                 column = 7
-#             else:
-#                 column -= 1
                 
         widget = QWidget()
         widget.setLayout(layout)
