@@ -42,7 +42,6 @@ class MainWindow(QMainWindow):
                     self.squares[current_square].setStyleSheet(f"font-size: 25pt; background-color: {black}")
                 else:
                     self.squares[current_square].setStyleSheet(f"font-size: 25pt; background-color: {white}")
-                
         
         layout = QGridLayout()
         column = 0
@@ -55,10 +54,25 @@ class MainWindow(QMainWindow):
             else:
                 column += 1
         
-                
+        self.new_game = QPushButton("New Game")
+        self.new_game.setStyleSheet(f"font-size: 12pt")
+        self.new_game.setFixedSize(90, 45)
+        self.new_game.clicked.connect(self.restart)
+        
+        outer_layout = QGridLayout()
+        outer_layout.addLayout(layout, 0, 0)
+        outer_layout.addWidget(self.new_game, 1, 0)
+        
         widget = QWidget()
-        widget.setLayout(layout)
+        widget.setLayout(outer_layout)
         self.setCentralWidget(widget)
+        
+        
+    def restart(self):
+        self.game = ChessGame()
+        for square in self.squares:
+            self.squares[square].setText(self.game.board.pieces[square].image)
+        
         
     def handle_click(self):
 #         clicked_square = self.sender()
@@ -365,7 +379,8 @@ class ChessGame:
                     threats.append(key)
             except:
                 pass
-        return threats
+        return threats        
+    
 
 class Board:
     def __init__(self):
@@ -409,6 +424,7 @@ class Board:
             else:
                 self.black_king_pos = end_pos
         self.turn = Side.W if self.turn == Side.B else Side.B
+        
 
 class Piece:
     def __init__(self, side):
