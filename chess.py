@@ -5,6 +5,7 @@
 # (Kelvin) 12/4/2022: Fixed secondary helper methods in legal_moves, implemented Pawn & Knight checks. Only King checks remain
 # Sources:
 #	Find key given value in handle_click: https://www.geeksforgeeks.org/python-get-key-from-value-in-dictionary/
+#	Square colors from Chess.com
 
 from enum import Enum
 import sys
@@ -42,7 +43,8 @@ class MainWindow(QMainWindow):
                     self.squares[current_square].setStyleSheet(f"font-size: 25pt; background-color: {black}")
                 else:
                     self.squares[current_square].setStyleSheet(f"font-size: 25pt; background-color: {white}")
-                
+            
+        self.squares2 = self.squares.copy()
         
         layout = QGridLayout()
         column = 0
@@ -54,7 +56,17 @@ class MainWindow(QMainWindow):
                 column = 0
             else:
                 column += 1
-        
+
+#         layout_flipped = QGridLayout()
+#         column = 7
+#         row = 7
+#         for key in self.squares2:
+#             layout_flipped.addWidget(self.squares2[key], row, column)
+#             if column == 0:
+#                 row -= 1
+#                 column = 7
+#             else:
+#                 column -= 1
                 
         widget = QWidget()
         widget.setLayout(layout)
@@ -87,6 +99,9 @@ class MainWindow(QMainWindow):
                     self.game.board.move(self.selected_square, key_list[target])
                     for square in self.squares:
                         self.squares[square].setText(board[square].image)
+                    for square in self.squares2:
+                        self.squares2[square].setText(board[square].image)
+#                     self.setCentralWidget(self.widget if self.board.turn == Side.W else self.widget2)
                     self.unselect_square()
                 try:
                     if board[key_list[target]].side ==\
@@ -136,9 +151,9 @@ class ChessGame:
             if isinstance(board[target_key], Piece):
                 if board[target_key].side != self.board.turn:
                     return [target_key, "capture"]
-                return None
+                return None # Square has a piece of the same side
             else:
-                return [target_key]
+                return [target_key] # If square is an Empty
         else:
             raise ValueError("Provided target is not a valid key")
     
@@ -284,9 +299,10 @@ class ChessGame:
             side = self.board.pieces[key_of_piece].side
             direction = 1 if side == Side.W else -1
             ext_moveset = [[1, direction], [-1, direction]] # Capture squares
+            enp_moveset = [[1, 0], [-1, 0]]
             # Check normal forward moves
             moves = [[0, direction]]
-            # Check     
+            # Check
             if (side == Side.W and key_of_piece[1] == "2") or (side == Side.B and key_of_piece[1] == "7"):
                 moves.append([0, direction * 2]) # Can move 2 sqares if still on home square
             for pos_move in moves:
@@ -295,12 +311,37 @@ class ChessGame:
                     legal_move_list += move
             # Check Captures
             for pos_move in ext_moveset:
+                move_key = self.increment_key(key_of_piece, pos_move)
                 try:
-                    move = self.check_space(key_of_piece, self.increment_key(key_of_piece, pos_move))
-                    if len(move) == 2 and move[1] == "capture":
-                        legal_move_list += move[:1]
+                    move = self.check_space(key_of_piece, move_key)
+                    print("Checking pawn move:")
+                    print(move)
                 except:
-                    pass 
+                    move = False
+                if move == False or move == None:
+                    pass
+                # En Passant
+                elif len(move) == 1: 
+                    print("Now checking en passant")
+                    if self.board.pieces[key_of_piece].enp != False:
+                        try:
+                            enp_move = self.increment_key(move_key, [0, direction * -1])
+                            enp_move_check = self.check_space(key_of_piece, enp_move)
+                            if enp_move_check == None:
+                                pass
+                            elif len(enp_move_check) == 2 and enp_move_check[1] == "capture" and\
+                               isinstance(self.board.pieces[enp_move], Pawn) and\
+                               self.board.pieces[enp_move].times_moved == 1 and\
+                               self.board.last_move[1] == enp_move:
+                                legal_move_list.append(move_key)
+                                self.board.pieces[key_of_piece].enp.append(move_key)
+                        except:
+                            print("En passant check died")
+                # Normal Capture
+                elif len(move) == 2 and move[1] == "capture":
+                    
+                    legal_move_list += move[:1]
+                    
         else:
             legal_move_list = []
             
@@ -381,6 +422,7 @@ class Board:
         self.white_king_pos = "e1"
         self.black_king_pos = "e8"
         self.turn = Side.W
+        self.last_move = []
     def move(self, start_pos, end_pos):
         # Castling here:
         if isinstance(self.pieces[start_pos], King) and not self.pieces[start_pos].has_moved:
@@ -397,22 +439,33 @@ class Board:
                 self.pieces['d8'] = self.pieces['a8']
                 self.pieces['a8'] = Empty()
         self.pieces[start_pos].has_moved = True
+        self.pieces[start_pos].times_moved += 1
         # If move is a capture (end_pos not an Empty)
         if isinstance(self.pieces[end_pos], Empty) == False:
             self.captured.append(self.pieces[end_pos])
         self.pieces[end_pos] = self.pieces[start_pos]
         self.pieces[start_pos] = Empty()
+        # Check for En Passant
+        if isinstance(self.pieces[end_pos], Pawn):
+            if end_pos in self.pieces[end_pos].enp: # if capture is En Passant
+                # Capture other pawn
+                other_pawn = end_pos[0] + str(int(end_pos[1]) + (1 if self.turn == Side.B else -1))
+                self.captured.append(self.pieces[other_pawn])
+                self.pieces[other_pawn] = Empty()
+                self.pieces[end_pos].enp = False # Reset en passant instance variable for that pawn
         # Update position of kings in instance variables for check checks
         if isinstance(self.pieces[end_pos], King):
             if self.pieces[end_pos].side == Side.W:
                 self.white_king_pos = end_pos
             else:
                 self.black_king_pos = end_pos
+        self.last_move = [start_pos, end_pos]
         self.turn = Side.W if self.turn == Side.B else Side.B
 
 class Piece:
     def __init__(self, side):
         self.has_moved = False
+        self.times_moved = 0
         self.side = side
 class King(Piece):
     def __init__(self, side):
@@ -465,6 +518,7 @@ class Pawn(Piece):
         super().__init__(side)
         self.image = "\u2659" if self.side == Side.W else "\u265F"
         self.value = 1
+        self.enp = []
     
     def __repr__(self):
         return f"White Pawn" if self.side == Side.W else f"Black Pawn"
