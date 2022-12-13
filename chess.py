@@ -2,9 +2,10 @@
 # CPTR 215 A, Final Project
 # History:
 #	4 Dec: Added front end
-# (Kelvin) 12/4/2022: Fixed secondary helper methods in legal_moves, implemented Pawn & Knight checks. Only King checks remain
+#	Rest of history in github
 # Sources:
 #	Find key given value in handle_click: https://www.geeksforgeeks.org/python-get-key-from-value-in-dictionary/
+#	Square colors from Chess.com
 
 from enum import Enum
 import sys
@@ -43,14 +44,65 @@ class MainWindow(QMainWindow):
                 else:
                     self.squares[current_square].setStyleSheet(f"font-size: 25pt; background-color: {white}")
         
+#         layout = QGridLayout()
+#         column = 0
+#         row = 0
+#         for key in self.squares:
+#             layout.addWidget(self.squares[key], row, column)
+#             if column == 7:
+#                 row += 1
+#                 column = 0
+#             else:
+#                 column += 1
+
+        # Row label creations
+        self.row8 = QLabel("8")
+        self.row7 = QLabel("7")
+        self.row6 = QLabel("6")
+        self.row5 = QLabel("5")
+        self.row4 = QLabel("4")
+        self.row3 = QLabel("3")
+        self.row2 = QLabel("2")
+        self.row1 = QLabel("1")
+        
+        # Column label creations
+        self.col_a = QLabel("     a")
+        self.col_b = QLabel("     b")
+        self.col_c = QLabel("     c")
+        self.col_d = QLabel("     d")
+        self.col_e = QLabel("     e")
+        self.col_f = QLabel("     f")
+        self.col_g = QLabel("     g")
+        self.col_h = QLabel("     h")
+        
+        # Sets the layout
         layout = QGridLayout()
-        column = 0
+        
+        layout.addWidget(self.row8, 0, 0)
+        layout.addWidget(self.row7, 1, 0)
+        layout.addWidget(self.row6, 2, 0)
+        layout.addWidget(self.row5, 3, 0)
+        layout.addWidget(self.row4, 4, 0)
+        layout.addWidget(self.row3, 5, 0)
+        layout.addWidget(self.row2, 6, 0)
+        layout.addWidget(self.row1, 7, 0)
+        
+        layout.addWidget(self.col_a, 8, 1)
+        layout.addWidget(self.col_b, 8, 2)
+        layout.addWidget(self.col_c, 8, 3)
+        layout.addWidget(self.col_d, 8, 4)
+        layout.addWidget(self.col_e, 8, 5)
+        layout.addWidget(self.col_f, 8, 6)
+        layout.addWidget(self.col_g, 8, 7)
+        layout.addWidget(self.col_h, 8, 8) 
+        
+        column = 1
         row = 0
         for key in self.squares:
             layout.addWidget(self.squares[key], row, column)
-            if column == 7:
+            if column == 8:
                 row += 1
-                column = 0
+                column = 1
             else:
                 column += 1
         
@@ -82,7 +134,6 @@ class MainWindow(QMainWindow):
         for square in self.squares:
             self.squares[square].setText(self.game.board.pieces[square].image)
         
-        
     def handle_click(self):
 #         clicked_square = self.sender()
         key_list = list(self.squares.keys())
@@ -110,6 +161,10 @@ class MainWindow(QMainWindow):
                     self.game.board.move(self.selected_square, key_list[target])
                     for square in self.squares:
                         self.squares[square].setText(board[square].image)
+                        
+                    mate_status = self.game.check_mates()
+                    print(f"Mate status: {mate_status}")
+                    
                     self.unselect_square()
                 try:
                     if board[key_list[target]].side ==\
@@ -153,7 +208,6 @@ class ChessGame:
         self.legal_rows = "12345678"
         self.king_moveset = [[0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1]]
         self.knight_moveset = [[-2, -1], [-2, 1], [2, -1], [2, 1], [-1, -2], [1, -2], [-1, 2], [1, 2]]
-        
     # Secondary Helper Methods
     def increment_key(self, key: str, amounts: list[int]) -> str:
         """ Increments the key of a chess square
@@ -164,7 +218,6 @@ class ChessGame:
         'g8'
         """
         return self.increment_column(key, amounts[0]) + self.increment_row(key, amounts[1])
-    
     def increment_column(self, key: str, amount: int) -> str:
         """ Increments the column of a chess square
         >>> game = ChessGame()
@@ -174,7 +227,6 @@ class ChessGame:
         'f'
         """
         return chr(ord(key[0]) + amount)
-    
     def increment_row(self, key: str, amount: int) -> str:
         """ Increments the row of a chess square
         >>> game = ChessGame()
@@ -184,7 +236,6 @@ class ChessGame:
         '7'
         """
         return str(int(key[1]) + amount)
-    
     def check_space(self, key_of_piece: str, target_key: str, board: dict = None) -> list[str]:
         """ Checks to see if the space is on the board
         >>> game = ChessGame()
@@ -204,9 +255,9 @@ class ChessGame:
             if isinstance(board[target_key], Piece):
                 if board[target_key].side != self.board.turn:
                     return [target_key, "capture"]
-                return None
+                return None # Square has a piece of the same side
             else:
-                return [target_key]
+                return [target_key] # If square is an Empty
         else:
             raise ValueError("Provided target is not a valid key")
     
@@ -270,7 +321,6 @@ class ChessGame:
                 current_row = current_key[1] # number
                 current_column = current_key[0] # letter
         return vertical_move_list
-    
     # Useful for King and Rook
     def check_moves_in_moveset(self, key_of_piece: str, moveset: list[list[int]]) -> list[str]:
         ''' Validates a move if it is a capture or empty space.
@@ -290,7 +340,6 @@ class ChessGame:
             except:
                 pass
         return valid_moves
-    
     def legal_moves(self, key_of_piece: str) -> list[str]:
         """
         >>> game = ChessGame()
@@ -330,6 +379,9 @@ class ChessGame:
         >>> game.legal_moves('g1')
         ['f3', 'h3']
         >>> game.legal_moves('h2')
+        Checking pawn move:
+        ['g3']
+        Now checking en passant
         ['h3', 'h4']
         >>> game.legal_moves('h4')
         []
@@ -364,6 +416,8 @@ class ChessGame:
                 king_side_castle_threats = 0
                 queen_side_castle_threats = 0
                 
+                # Terrible sequence of nested ifs that I would in retrospect structure differently
+                # but it looks kinda cool so I'm just leaving it cause screw it
                 for rook, squares in zip(rooks, check_squares):
                     if isinstance(self.board.pieces[rook], Rook):
                         if not self.board.pieces[rook].has_moved:
@@ -401,9 +455,10 @@ class ChessGame:
             side = self.board.pieces[key_of_piece].side
             direction = 1 if side == Side.W else -1
             ext_moveset = [[1, direction], [-1, direction]] # Capture squares
+            enp_moveset = [[1, 0], [-1, 0]]
             # Check normal forward moves
             moves = [[0, direction]]
-            # Check     
+            # Check
             if (side == Side.W and key_of_piece[1] == "2") or (side == Side.B and key_of_piece[1] == "7"):
                 moves.append([0, direction * 2]) # Can move 2 sqares if still on home square
             for pos_move in moves:
@@ -412,12 +467,37 @@ class ChessGame:
                     legal_move_list += move
             # Check Captures
             for pos_move in ext_moveset:
+                move_key = self.increment_key(key_of_piece, pos_move)
                 try:
-                    move = self.check_space(key_of_piece, self.increment_key(key_of_piece, pos_move))
-                    if len(move) == 2 and move[1] == "capture":
-                        legal_move_list += move[:1]
+                    move = self.check_space(key_of_piece, move_key)
+                    print("Checking pawn move:")
+                    print(move)
                 except:
-                    pass 
+                    move = False
+                if move == False or move == None:
+                    pass
+                # En Passant
+                elif len(move) == 1: 
+                    print("Now checking en passant")
+                    if self.board.pieces[key_of_piece].enp != False:
+                        try:
+                            enp_move = self.increment_key(move_key, [0, direction * -1])
+                            enp_move_check = self.check_space(key_of_piece, enp_move)
+                            if enp_move_check == None:
+                                pass
+                            elif len(enp_move_check) == 2 and enp_move_check[1] == "capture" and\
+                               isinstance(self.board.pieces[enp_move], Pawn) and\
+                               self.board.pieces[enp_move].times_moved == 1 and\
+                               self.board.last_move[1] == enp_move:
+                                legal_move_list.append(move_key)
+                                self.board.pieces[key_of_piece].enp.append(move_key)
+                        except:
+                            print("En passant check died")
+                # Normal Capture
+                elif len(move) == 2 and move[1] == "capture":
+                    
+                    legal_move_list += move[:1]
+                    
         else:
             legal_move_list = []
             
@@ -482,8 +562,33 @@ class ChessGame:
                     threats.append(key)
             except:
                 pass
-        return threats        
-    
+        return threats
+    def check_mates(self):
+        """
+        Checks if the current side is in check, if so looks for legal moves. If none found, it's checkmate for
+        opposing side. If current side is not in check, looks for legal moves. If none found, it's stalemate.
+        """
+        def legal_move_exists(side, board):
+            for square in board:
+                if isinstance(board[square], Empty):
+                    pass
+                elif board[square].side != side:
+                    pass
+                elif len(self.legal_moves(square)) != 0:
+                    return True # As soon as a legal move is found
+            return False # If no legal moves found
+        
+        side = self.board.turn
+        board = self.board.pieces
+        # If current side is in check
+        if len(self.king_check(side)) != 0:
+            checkmate = False if legal_move_exists(side, board) else True
+            return False if not checkmate else ["Checkmate", side]
+        # If current side not in check, check for stalemate
+        else:
+            stalemate = False if legal_move_exists(side, board) else True
+            return False if not stalemate else ["Stalemate", side]
+            
 
 class Board:
     def __init__(self):
@@ -499,6 +604,7 @@ class Board:
         self.white_king_pos = "e1"
         self.black_king_pos = "e8"
         self.turn = Side.W
+        self.last_move = []
     def move(self, start_pos, end_pos):
         # Castling here:
         if isinstance(self.pieces[start_pos], King) and not self.pieces[start_pos].has_moved:
@@ -515,23 +621,34 @@ class Board:
                 self.pieces['d8'] = self.pieces['a8']
                 self.pieces['a8'] = Empty()
         self.pieces[start_pos].has_moved = True
+        self.pieces[start_pos].times_moved += 1
         # If move is a capture (end_pos not an Empty)
         if isinstance(self.pieces[end_pos], Empty) == False:
             self.captured.append(self.pieces[end_pos])
         self.pieces[end_pos] = self.pieces[start_pos]
         self.pieces[start_pos] = Empty()
+        # Check for En Passant
+        if isinstance(self.pieces[end_pos], Pawn):
+            if end_pos in self.pieces[end_pos].enp: # if capture is En Passant
+                # Capture other pawn
+                other_pawn = end_pos[0] + str(int(end_pos[1]) + (1 if self.turn == Side.B else -1))
+                self.captured.append(self.pieces[other_pawn])
+                self.pieces[other_pawn] = Empty()
+                self.pieces[end_pos].enp = False # Reset en passant instance variable for that pawn
         # Update position of kings in instance variables for check checks
         if isinstance(self.pieces[end_pos], King):
             if self.pieces[end_pos].side == Side.W:
                 self.white_king_pos = end_pos
             else:
                 self.black_king_pos = end_pos
+        self.last_move = [start_pos, end_pos]
         self.turn = Side.W if self.turn == Side.B else Side.B
         
 
 class Piece:
     def __init__(self, side):
         self.has_moved = False
+        self.times_moved = 0
         self.side = side
 class King(Piece):
     def __init__(self, side):
@@ -584,6 +701,7 @@ class Pawn(Piece):
         super().__init__(side)
         self.image = "\u2659" if self.side == Side.W else "\u265F"
         self.value = 1
+        self.enp = []
     
     def __repr__(self):
         return f"White Pawn" if self.side == Side.W else f"Black Pawn"
