@@ -647,6 +647,42 @@ class Board:
         self.turn = Side.W
         self.last_move = []
     def move(self, start_pos, end_pos):
+        """
+        Executes a move on the backend board dictionary. Moves the piece at dictionary key 'start_pos' to the square 'end_pos'.
+        After executing move, updates turn tracking instance variables self.turn and self.last_move.
+        Any piece can be moved anywhere at any time if called from the shell or a script.
+        If move is manually called to move a king to a castling square, the rook will also me moved if the king hadn't moved previously.
+        Expected usage is to execute a move already verified by ChessGame()'s legal_moves() method.
+        En Passant specifically is only possible with the extra setup provided through legal_moves 's check for en passant
+        >>> board = Board()
+        >>> board.move('a7', 'a6')
+        >>> print(board.pieces['a6'])
+        Black Pawn
+        >>> board.move('d8', 'd6')
+        >>> print(board.pieces['d6'])
+        Black Queen
+        >>> board.move('c8', 'c5')
+        >>> print(board.pieces['c5'])
+        Black Bishop
+        >>> board.move('b8', 'b6')
+        >>> print(board.pieces['b6'])
+        Black Knight
+        >>> board.move('a1', 'a5')
+        >>> print(board.pieces['a5'])
+        White Rook
+        >>> game = ChessGame()
+        >>> game.board.move('e2', 'e3')
+        >>> game.board.move('a7', 'a6')
+        >>> game.board.move('f1', 'c4')
+        >>> game.board.move('b7', 'b6')
+        >>> game.board.move('g1', 'h3')
+        >>> game.board.move('d7', 'd6')
+        >>> game.board.move('e1', 'g1')
+        >>> print(game.board.pieces['g1'])
+        White King
+        >>> print(game.board.pieces['f1'])
+        White Rook
+        """
         # Castling here:
         if isinstance(self.pieces[start_pos], King) and not self.pieces[start_pos].has_moved:
             if end_pos == 'g1':
