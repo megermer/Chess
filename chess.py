@@ -21,8 +21,11 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Chess")
         
         self.game = ChessGame()
-        self.click_state = "Unselected"   
+        
+        self.click_state = "Unselected"
         self.selected_square = ""
+        
+        self.restart_button_state = "N/A"
         
             
         # Styling:
@@ -30,19 +33,21 @@ class MainWindow(QMainWindow):
 #         black = "#312624"
         white = "#EEEED4"
         black = "#7C955C"
+        font_size = "font-size: 26pt"
+        border = "border-radius: 2px; border: 1px solid gray"
             
         self.squares = dict()
         for number in "87654321":
             for letter in "abcdefgh":
                 current_square = f"{letter}{number}"
                 self.squares[current_square] = QPushButton("")
-                self.squares[current_square].setFixedSize(45, 45)
+                self.squares[current_square].setFixedSize(48, 48)
                 self.squares[current_square].clicked.connect(self.handle_click)
                 self.squares[current_square].setText(self.game.board.pieces[current_square].image)
                 if (ord(letter) + int(number)) % 2 == 0:
-                    self.squares[current_square].setStyleSheet(f"font-size: 25pt; background-color: {black}")
+                    self.squares[current_square].setStyleSheet(f"{font_size}; {border}; background-color: {black}")
                 else:
-                    self.squares[current_square].setStyleSheet(f"font-size: 25pt; background-color: {white}")
+                    self.squares[current_square].setStyleSheet(f"{font_size}; {border}; background-color: {white}")
         
 #         layout = QGridLayout()
 #         column = 0
@@ -54,7 +59,7 @@ class MainWindow(QMainWindow):
 #                 column = 0
 #             else:
 #                 column += 1
-
+                
         # Row label creations
         self.row8 = QLabel("8")
         self.row7 = QLabel("7")
@@ -107,14 +112,15 @@ class MainWindow(QMainWindow):
                 column += 1
         
         self.new_game = QPushButton("Offer Draw")
-        self.new_game.setStyleSheet(f"font-size: 12pt")
+        self.new_game.setStyleSheet("background-color: #d3d3d3; font-size: 12pt; font-weight: normal; border-radius: 8px; border: 1px solid gray;")
         self.new_game.setFixedSize(90, 45)
+
         self.new_game.clicked.connect(self.restart)
         
         
-        self.announcement = QLabel("Checkmate!")
-        self.announcement.setStyleSheet(f"font-size: 12pt")
-        self.announcement.setFixedSize(90, 45)
+        self.announcement = QLabel("")
+        self.announcement.setStyleSheet(f"font-size: 16pt; font-weight: bold;")
+        self.announcement.setFixedSize(120, 45)
         
         info_layout = QHBoxLayout()
         info_layout.addWidget(self.announcement)
@@ -126,13 +132,32 @@ class MainWindow(QMainWindow):
         
         widget = QWidget()
         widget.setLayout(outer_layout)
+        widget.setStyleSheet("background-color: #d2e7d6;")
         self.setCentralWidget(widget)
         
         
     def restart(self):
-        self.game = ChessGame()
-        for square in self.squares:
-            self.squares[square].setText(self.game.board.pieces[square].image)
+        if self.restart_button_state == "N/A":
+            self.restart_button_state = "Confirm"
+            self.new_game.setText("Confirm\nDraw?")
+            self.new_game.setStyleSheet("background-color: #d3d3d3; font-size: 13pt; font-weight: bold; border-radius: 8px; border: 1px solid gray;")
+            
+        elif self.restart_button_state == "Confirm":
+            self.click_state = "Paused"
+            self.announcement.setText("DRAW")
+            self.restart_button_state = "New Game"
+            self.new_game.setStyleSheet("background-color: #d3d3d3; font-size: 12pt; font-weight: normal; border-radius: 8px; border: 1px solid gray;")
+            self.new_game.setText("New Game")
+        
+        elif self.restart_button_state == "New Game":
+            self.announcement.setText("")
+            self.restart_button_state = "N/A"
+            self.new_game.setText("Offer Draw")
+            self.click_state = "Unselected"
+            
+            self.game = ChessGame()
+            for square in self.squares:
+                self.squares[square].setText(self.game.board.pieces[square].image)
         
     def handle_click(self):
 #         clicked_square = self.sender()
@@ -140,7 +165,13 @@ class MainWindow(QMainWindow):
         val_list = list(self.squares.values())
         target = val_list.index(self.sender())
         board = self.game.board.pieces
-        if self.click_state == "Unselected":
+        if self.click_state != "Paused":
+            self.restart_button_state = "N/A"
+            self.new_game.setText("Offer Draw")
+            self.new_game.setStyleSheet("background-color: #d3d3d3; font-size: 12pt; font-weight: normal; border-radius: 8px; border: 1px solid gray;")
+        if self.click_state == "Paused":
+            pass
+        elif self.click_state == "Unselected":
             print("Unselected state entered")
             if isinstance(board[key_list[target]], Piece) and\
                board[key_list[target]].side == self.game.board.turn:
@@ -158,14 +189,24 @@ class MainWindow(QMainWindow):
                 print(self.game.legal_moves(self.selected_square))
                 if key_list[target] in self.game.legal_moves(self.selected_square):
                     print(f"This is a legal move: moving {key_list[target]}")
+                    # Backend Move
                     self.game.board.move(self.selected_square, key_list[target])
+                    # Update frontend squares
                     for square in self.squares:
                         self.squares[square].setText(board[square].image)
-                        
+                    # Check for mates
                     mate_status = self.game.check_mates()
                     print(f"Mate status: {mate_status}")
-                    
-                    self.unselect_square()
+                    if mate_status != False:
+                        self.click_state = "Paused"
+                        if mate_status[0] == "Stalemate":
+                            self.announcement.setText("Stalemate!")
+                        elif mate_status[0] == "Checkmate":
+                            self.announcement.setText(f"{'Black' if mate_status[1] == Side.W else 'White'} wins!")
+                        self.restart_button_state = "New Game"
+                        self.new_game.setText("New Game")
+                    else:
+                        self.unselect_square()
                 try:
                     if board[key_list[target]].side ==\
                        board[self.selected_square].side:
@@ -625,22 +666,40 @@ class Board:
         # If move is a capture (end_pos not an Empty)
         if isinstance(self.pieces[end_pos], Empty) == False:
             self.captured.append(self.pieces[end_pos])
+        # Executes Move
         self.pieces[end_pos] = self.pieces[start_pos]
         self.pieces[start_pos] = Empty()
-        # Check for En Passant
+        # Check for En Passant and Promotion
         if isinstance(self.pieces[end_pos], Pawn):
-            if end_pos in self.pieces[end_pos].enp: # if capture is En Passant
+            # If not en passant check for promotion
+            enp = True
+            if self.pieces[end_pos].enp == False:
+                enp = False
+            elif len(self.pieces[end_pos].enp) == 0:
+                enp = False
+            if not enp:
+                if (self.turn == Side.W and end_pos[1] == "8") or\
+                   (self.turn == Side.B and end_pos[1] == "1"):
+                    print("Pawn Promoted")
+                    times_moved = self.pieces[end_pos].times_moved
+                    self.pieces[end_pos] = Queen(self.turn)
+                    self.pieces[end_pos].times_moved = times_moved
+                    
+            # If capture is En Passant
+            elif end_pos in self.pieces[end_pos].enp:
                 # Capture other pawn
                 other_pawn = end_pos[0] + str(int(end_pos[1]) + (1 if self.turn == Side.B else -1))
                 self.captured.append(self.pieces[other_pawn])
                 self.pieces[other_pawn] = Empty()
-                self.pieces[end_pos].enp = False # Reset en passant instance variable for that pawn
+                # Reset en passant instance variable for that pawn
+                self.pieces[end_pos].enp = False
         # Update position of kings in instance variables for check checks
         if isinstance(self.pieces[end_pos], King):
             if self.pieces[end_pos].side == Side.W:
                 self.white_king_pos = end_pos
             else:
                 self.black_king_pos = end_pos
+        # Update turn tracking instance variables
         self.last_move = [start_pos, end_pos]
         self.turn = Side.W if self.turn == Side.B else Side.B
         
