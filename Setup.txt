@@ -1,0 +1,1 @@
+To run Chess.py, PySide 6 is needed. 

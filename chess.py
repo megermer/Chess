@@ -48,17 +48,6 @@ class MainWindow(QMainWindow):
                     self.squares[current_square].setStyleSheet(f"{font_size}; {border}; background-color: {black}")
                 else:
                     self.squares[current_square].setStyleSheet(f"{font_size}; {border}; background-color: {white}")
-        
-#         layout = QGridLayout()
-#         column = 0
-#         row = 0
-#         for key in self.squares:
-#             layout.addWidget(self.squares[key], row, column)
-#             if column == 7:
-#                 row += 1
-#                 column = 0
-#             else:
-#                 column += 1
                 
         # Row label creations
         self.row8 = QLabel("8")
@@ -160,7 +149,6 @@ class MainWindow(QMainWindow):
                 self.squares[square].setText(self.game.board.pieces[square].image)
         
     def handle_click(self):
-#         clicked_square = self.sender()
         key_list = list(self.squares.keys())
         val_list = list(self.squares.values())
         target = val_list.index(self.sender())
@@ -364,7 +352,7 @@ class ChessGame:
         return vertical_move_list
     # Useful for King and Rook
     def check_moves_in_moveset(self, key_of_piece: str, moveset: list[list[int]]) -> list[str]:
-        ''' Validates a move if it is a capture or empty space.
+        ''' Validates a move if it is a capture or empty space. Called from legal_moves and mainly tested through that method. 
         >>> game = ChessGame()
         >>> game.check_moves_in_moveset('h1', [[1, 2], [2, 1]])
         []
@@ -604,10 +592,12 @@ class ChessGame:
             except:
                 pass
         return threats
+    
     def check_mates(self):
         """
         Checks if the current side is in check, if so looks for legal moves. If none found, it's checkmate for
         opposing side. If current side is not in check, looks for legal moves. If none found, it's stalemate.
+        Is a helper method for handle_click, which interacts directly with the frontend. 
         """
         def legal_move_exists(side, board):
             for square in board:
