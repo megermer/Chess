@@ -133,6 +133,7 @@ class MainWindow(QMainWindow):
             
         elif self.restart_button_state == "Confirm":
             self.click_state = "Paused"
+            self.announcement.setStyleSheet(f"font-size: 16pt; font-weight: bold;")
             self.announcement.setText("DRAW")
             self.restart_button_state = "New Game"
             self.new_game.setStyleSheet("background-color: #d3d3d3; font-size: 12pt; font-weight: normal; border-radius: 8px; border: 1px solid gray;")
@@ -177,7 +178,7 @@ class MainWindow(QMainWindow):
                 print(self.game.legal_moves(self.selected_square))
                 if key_list[target] in self.game.legal_moves(self.selected_square):
                     print(f"This is a legal move: moving {key_list[target]}")
-                    # Backend Move
+                    # Backend Move - move method switches turns to next player
                     self.game.board.move(self.selected_square, key_list[target])
                     # Update frontend squares
                     for square in self.squares:
@@ -188,13 +189,17 @@ class MainWindow(QMainWindow):
                     if mate_status != False:
                         self.click_state = "Paused"
                         if mate_status[0] == "Stalemate":
+                            self.announcement.setStyleSheet(f"font-size: 16pt; font-weight: bold;")
                             self.announcement.setText("Stalemate!")
                         elif mate_status[0] == "Checkmate":
+                            self.announcement.setStyleSheet(f"font-size: 16pt; font-weight: bold;")
                             self.announcement.setText(f"{'Black' if mate_status[1] == Side.W else 'White'} wins!")
                         self.restart_button_state = "New Game"
                         self.new_game.setText("New Game")
                     else:
                         self.unselect_square()
+                        self.announcement.setStyleSheet(f"font-size: 15pt; font-weight: normal;")
+                        self.announcement.setText(f"{'Black' if self.game.board.turn == Side.B else 'White'}'s turn")
                 try:
                     if board[key_list[target]].side ==\
                        board[self.selected_square].side:
